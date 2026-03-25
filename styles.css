@@ -1,0 +1,348 @@
+/* ===========================
+   Untab — Travel Identity
+   =========================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #fcf8fa;
+  --ink: #1a1a1a;
+  --ink-light: #6b6b6b;
+  --accent: #c9b8a8;
+  --font-serif: 'Georgia', 'Times New Roman', serif;
+  --font-sans: 'Helvetica Neue', 'Arial', sans-serif;
+}
+
+html, body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ===========================
+   Progress bar
+   =========================== */
+
+.step-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #ede6ea;
+  z-index: 100;
+}
+
+.step-progress-bar {
+  height: 100%;
+  background: var(--ink);
+  transition: width 0.4s ease;
+}
+
+/* ===========================
+   Step layout
+   =========================== */
+
+.step-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 40px 80px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .step-wrapper {
+    padding: 80px 24px 80px;
+  }
+}
+
+.step-count {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 32px;
+}
+
+.step-count span {
+  color: #d8cdd4;
+}
+
+.step-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.step-question {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: normal;
+  line-height: 1.35;
+  color: var(--ink);
+  margin-bottom: 36px;
+  letter-spacing: -0.2px;
+}
+
+@media (max-width: 480px) {
+  .step-question {
+    font-size: 22px;
+  }
+}
+
+.hint {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 6px;
+}
+
+/* ===========================
+   Text inputs
+   =========================== */
+
+.step-field {
+  margin-bottom: 8px;
+}
+
+.step-field input[type="text"],
+.step-field input[type="email"],
+.step-field textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #e0d8dc;
+  padding: 10px 0;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+  resize: none;
+}
+
+.step-field input:focus,
+.step-field textarea:focus {
+  border-bottom-color: var(--ink);
+}
+
+.step-field input::placeholder,
+.step-field textarea::placeholder {
+  color: #c8bfc4;
+}
+
+.step-field input.field-error {
+  border-bottom-color: #c0746b;
+}
+
+/* Text group (Q2+Q3) */
+
+.field-sub {
+  margin-bottom: 28px;
+}
+
+.field-sub:last-child {
+  margin-bottom: 0;
+}
+
+.field-sub label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 8px;
+}
+
+/* ===========================
+   Options (radio / checkbox)
+   =========================== */
+
+.options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  padding: 13px 16px;
+  border: 1px solid #ede6ea;
+  background: transparent;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.option:hover {
+  border-color: var(--accent);
+  background: #fdf5f8;
+}
+
+.option:has(input:checked) {
+  border-color: var(--ink);
+  background: #fdf5f8;
+}
+
+.option input[type="radio"],
+.option input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+.option span {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-light);
+  transition: color 0.15s;
+}
+
+.option:has(input:checked) span {
+  color: var(--ink);
+}
+
+/* ===========================
+   Navigation buttons
+   =========================== */
+
+.step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40px;
+  gap: 16px;
+}
+
+.btn-next {
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  padding: 14px 32px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-left: auto;
+}
+
+.btn-next:hover {
+  opacity: 0.75;
+}
+
+.btn-back {
+  background: transparent;
+  color: var(--ink-light);
+  border: none;
+  padding: 14px 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btn-back:hover {
+  color: var(--ink);
+}
+
+/* ===========================
+   Fade-in animation
+   =========================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fadeInUp 0.35s ease forwards;
+}
+
+/* ===========================
+   Result view
+   =========================== */
+
+#view-result {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 56px 32px 72px;
+}
+
+@media (max-width: 480px) {
+  #view-result {
+    padding: 40px 20px 56px;
+  }
+}
+
+.result-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+#card-container {
+  width: 100%;
+  max-width: min(480px, 100%);
+  box-shadow: 0 8px 40px rgba(26, 12, 18, 0.06), 0 2px 8px rgba(26, 12, 18, 0.04);
+}
+
+#card-container canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+.btn-download {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 13px 36px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-download:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
