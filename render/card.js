@@ -85,6 +85,7 @@ function renderCard(profile, containerId, answers = {}) {
 
     p.draw = function () {
       drawBackground();
+      drawCornerAccents();
       drawHeader();
       drawGrid();
       drawNebula();
@@ -94,6 +95,32 @@ function renderCard(profile, containerId, answers = {}) {
       hRule(MARGIN, DIV2_Y, W - MARGIN, 0.56);
       drawInfoBlock();
     };
+
+    function drawCornerAccents() {
+      const inset  = 28;   // distància des del marge exterior
+      const len    = 48;   // longitud de cada braç de la L
+      const weight = 1.8;  // gruix de línia
+      const alpha  = 195;  // opacitat més alta — visible però elegant
+
+      p.push();
+      p.stroke(...RULE, alpha);
+      p.strokeWeight(weight);
+      p.noFill();
+
+      const corners = [
+        { x: inset,     y: inset,      hDir: 1,  vDir: 1  }, // top-left
+        { x: W - inset, y: inset,      hDir: -1, vDir: 1  }, // top-right
+        { x: inset,     y: H - inset,  hDir: 1,  vDir: -1 }, // bottom-left
+        { x: W - inset, y: H - inset,  hDir: -1, vDir: -1 }, // bottom-right
+      ];
+
+      corners.forEach(({ x, y, hDir, vDir }) => {
+        p.line(x, y, x + hDir * len, y);       // braç horitzontal
+        p.line(x, y, x, y + vDir * len);       // braç vertical
+      });
+
+      p.pop();
+    }
 
     function drawBackground() {
       p.background(...BG);
