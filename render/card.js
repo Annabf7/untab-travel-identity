@@ -15,8 +15,6 @@ function renderCard(profile, containerId, answers = {}) {
     const MARGIN = 120;
 
     const SERIF = 'Cormorant Garamond';
-    const SANS = '"Helvetica Neue", Arial, sans-serif';
-
     // more faithful palette
     const BG = [250, 247, 245];
     const TEXT_DARK = [96, 88, 91];
@@ -115,12 +113,14 @@ function renderCard(profile, containerId, answers = {}) {
     }
 
     function drawHeader() {
-      p.noStroke();
-      p.fill(...TEXT_SOFT, 240);
-      p.textFont(SANS);
-      p.textStyle(p.NORMAL);
-      p.textSize(24);
-      trackedTextCenter('UNTAB TRAVEL', W / 2, HEADER_Y, 8);
+      p.drawingContext.save();
+      p.drawingContext.font          = 'normal 22px "Helvetica Neue", Arial, sans-serif';
+      p.drawingContext.fillStyle     = `rgb(${TEXT_MAIN.join(',')})`;
+      p.drawingContext.textAlign     = 'center';
+      p.drawingContext.textBaseline  = 'middle';
+      p.drawingContext.letterSpacing = '0.18em';
+      p.drawingContext.fillText('UNTAB TRAVEL', W / 2, HEADER_Y);
+      p.drawingContext.restore();
     }
 
     function drawGrid() {
@@ -368,14 +368,14 @@ function renderCard(profile, containerId, answers = {}) {
       p.pop();
 
       infoLabel('MICRO ADN', COL_L, INFO_Y, COL_MID - 16);
-      infoText(profile?.microADN || '—', COL_L, INFO_Y + 34, COL_W_L, 112, 20, 30);
+      infoText(profile?.microADN || '—', COL_L, INFO_Y + 28, COL_W_L, 112, 22, 26);
 
       infoLabel('TRIBU VIAJERA', COL_R, INFO_Y, W - MARGIN);
-      infoText(profile?.tribe || '—', COL_R, INFO_Y + 34, COL_W_R, 80, 20, 30);
+      infoText(profile?.tribe || '—', COL_R, INFO_Y + 28, COL_W_R, 80, 22, 26);
 
-      const DEST_Y = INFO_Y + 116;
+      const DEST_Y = INFO_Y + 96;
       infoLabel('DESTINO', COL_R, DEST_Y, W - MARGIN);
-      infoText(destination || '—', COL_R, DEST_Y + 34, COL_W_R, 80, 20, 30);
+      infoText(destination || '—', COL_R, DEST_Y + 28, COL_W_R, 80, 22, 26);
     }
 
     function infoLabel(txt, x, y, lineEndX) {
@@ -453,17 +453,6 @@ function renderCard(profile, containerId, answers = {}) {
       return txt;
     }
 
-    function trackedTextCenter(str, cx, y, spacing) {
-      const chars = String(str).split('');
-      const widths = chars.map(c => p.textWidth(c));
-      const total = widths.reduce((s, w) => s + w, 0) + spacing * (chars.length - 1);
-      let x = cx - total / 2;
-      p.textAlign(p.LEFT);
-      chars.forEach((c, i) => {
-        p.text(c, x, y);
-        x += widths[i] + spacing;
-      });
-    }
 
     function trackedTextLeft(str, x, y, spacing) {
       let cx = x;
