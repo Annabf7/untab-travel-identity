@@ -213,7 +213,7 @@ function renderCard(profile, containerId, answers = {}) {
       const linearW = vals.map(v => v / total);
 
       const TOTAL_POINTS = 1400; // més punts totals
-      const MAX_REACH    = 900;  // px — els punts arriben fins a les puntes dels eixos
+      const MAX_REACH    = 760;  // px — arriben més lluny, fade suau a la punta
       const MAX_SPREAD   = 85;   // amplada màxima al centre
 
       p.push();
@@ -260,26 +260,29 @@ function renderCard(profile, containerId, answers = {}) {
           const px = Q_CX + ux * t + (-uy) * s;
           const py = Q_CY + uy * t +   ux  * s;
 
+          // Fade: els punts s'esvaeixen gradualment cap a la punta
+          const fade = Math.max(0.15, 1 - (t / maxReach) * 0.85);
+
           const type = p.random();
           if (type < 0.18) {
             // microdust — segueix els eixos
             const r = p.random(0.35, 1.25);
-            p.fill(...STAR_MID, p.random(62, 102));
+            p.fill(...STAR_MID, p.random(62, 102) * fade);
             p.circle(px, py, r * 3.4);
-            p.fill(...STAR_WHITE, p.random(236, 255));
+            p.fill(...STAR_WHITE, p.random(236, 255) * fade);
             p.circle(px, py, r * 1.06);
           } else if (type < 0.90) {
             // grafita fosc petit — predominant als eixos
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
             const r = p.random(0.4, 1.6);
-            p.fill(...darkColor, p.random(200, 255));
-            p.circle(px, py, r);
+            p.fill(...darkColor, p.random(200, 255) * fade);
+            p.circle(px, py, r * 1.5);
           } else if (type < 0.97) {
             // grafita fosc mig
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
             const r = p.random(1.0, 2.2);
-            p.fill(...darkColor, p.random(180, 240));
-            p.circle(px, py, r);
+            p.fill(...darkColor, p.random(180, 240) * fade);
+            p.circle(px, py, r * 1.4);
           } else {
             // anchor discret
             clusterStar(px, py, p.random(1.0, 2.2));
@@ -294,11 +297,11 @@ function renderCard(profile, containerId, answers = {}) {
         const r = p.random(0.8, 2.8);
         if (p.random() > 0.38) {
           p.fill(...STAR_WHITE, p.random(232, 255));
-          p.circle(px, py, r);
+          p.circle(px, py, r * 1.4);
         } else {
           const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
           p.fill(...darkColor, p.random(210, 248));
-          p.circle(px, py, r * 0.85);
+          p.circle(px, py, r * 1.2);
         }
       }
 
