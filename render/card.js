@@ -440,14 +440,14 @@ function renderCard(profile, containerId, answers = {}) {
 
   const outerMargin = 192;
 const centerGap = 60;
-
+const colsShift = 36;
 
   const colWidth = (W - outerMargin * 2 - centerGap) / 2;
 
-  const leftX = outerMargin;
+  const leftX = outerMargin + colsShift;
   const opticalNudge = 12;
 
-const rightX = outerMargin + colWidth + centerGap + opticalNudge;
+const rightX = outerMargin + colWidth + centerGap + opticalNudge + colsShift;
 
   const leftEndX = leftX + colWidth;
   const rightEndX = rightX + colWidth;
