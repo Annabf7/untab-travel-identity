@@ -276,13 +276,13 @@ function renderCard(profile, containerId, answers = {}) {
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
             const r = p.random(0.4, 1.6);
             p.fill(...darkColor, p.random(200, 255) * fade);
-            p.circle(px, py, r * 1.5);
+            p.circle(px, py, r * 2.0);
           } else if (type < 0.97) {
             // grafita fosc mig
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
             const r = p.random(1.0, 2.2);
             p.fill(...darkColor, p.random(180, 240) * fade);
-            p.circle(px, py, r * 1.4);
+            p.circle(px, py, r * 1.8);
           } else {
             // anchor discret
             clusterStar(px, py, p.random(1.0, 2.2));
@@ -297,11 +297,11 @@ function renderCard(profile, containerId, answers = {}) {
         const r = p.random(0.8, 2.8);
         if (p.random() > 0.38) {
           p.fill(...STAR_WHITE, p.random(232, 255));
-          p.circle(px, py, r * 1.4);
+          p.circle(px, py, r * 1.8);
         } else {
           const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
           p.fill(...darkColor, p.random(210, 248));
-          p.circle(px, py, r * 1.2);
+          p.circle(px, py, r * 1.6);
         }
       }
 
