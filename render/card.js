@@ -16,12 +16,12 @@ function renderCard(profile, containerId, answers = {}) {
 
     const SERIF = 'Cormorant Garamond';
 
-    const BG = [250, 247, 245];
+    const BG = [247, 243, 241];
     const TEXT_DARK = [96, 88, 91];
     const TEXT_MAIN = [112, 103, 107];
     const TEXT_SOFT = [150, 140, 145];
-    const TEXT_LIGHT = [181, 172, 176];
-    const RULE = [220, 214, 216];
+    const TEXT_LIGHT = [170, 161, 166];
+    const RULE = [214, 208, 211];
     const GRID = [223, 217, 219];
 
     const Q_L = 150;
@@ -100,23 +100,38 @@ const COL_W_R = COL_W;
     };
 
     function drawBackground() {
-      p.background(...BG);
+  p.background(...BG);
 
-      p.push();
-      p.noStroke();
+  p.push();
+  p.noStroke();
 
-      for (let i = 0; i < 4200; i++) {
-        p.fill(255, 255, 255, p.random(4, 8));
-        p.circle(p.random(W), p.random(H), p.random(0.55, 1.15));
-      }
+  // gra clar fi, molt homogeni
+  for (let i = 0; i < 5200; i++) {
+    const g = p.random(250, 255);
+    p.fill(g, g, g, p.random(4, 9));
+    p.circle(p.random(W), p.random(H), p.random(0.35, 0.9));
+  }
 
-      for (let i = 0; i < 2200; i++) {
-        p.fill(218, 211, 214, p.random(2, 5));
-        p.circle(p.random(W), p.random(H), p.random(0.45, 0.95));
-      }
+  // gra ombra subtil, més fi que abans
+  for (let i = 0; i < 2600; i++) {
+    const g = p.random(210, 219);
+    p.fill(g, g, g, p.random(2, 5));
+    p.circle(p.random(W), p.random(H), p.random(0.3, 0.75));
+  }
 
-      p.pop();
-    }
+  // vel central gairebé imperceptible per donar profunditat
+  for (let i = 0; i < 18; i++) {
+    const a = p.random(3, 7);
+    p.fill(255, 255, 255, a);
+    p.circle(
+      W / 2 + p.random(-120, 120),
+      H / 2 + p.random(-180, 180),
+      p.random(180, 320)
+    );
+  }
+
+  p.pop();
+}
 
     function drawHeader() {
       p.drawingContext.save();
@@ -244,24 +259,6 @@ const COL_W_R = COL_W;
     return secSign * Math.sin(n * Math.PI * 0.82) * (8 + secInfluence * 12);
   };
 
-  // =========================
-// 1. Base molt subtil però visible
-// =========================
-for (let i = 0; i < 18; i++) {
-  const t = p.random(-halfLen * 0.46, halfLen * 0.34);
-  const spread = getSpread(t) * 0.34;
-  const cy = getCurveY(t);
-
-  const g = p.random(145, 176);
-  p.fill(g, g, g, p.random(12, 20));
-
-  p.ellipse(
-    t,
-    cy + p.random(-spread, spread),
-    p.random(20, 58),
-    p.random(8, 18)
-  );
-}
 
   // =========================
   // 2. Microdust principal — més punts
@@ -273,14 +270,14 @@ for (let i = 0; i < 18; i++) {
     const y = cy + p.random(-spread, spread);
 
     const r = p.random(0.35, 1.25);
-    const soft = p.random(176, 214);
-    const core = p.random(246, 255);
+    const soft = p.random(156, 198);
+const core = p.random(244, 255);
 
-    p.fill(soft, soft, soft, p.random(42, 78));
-    p.circle(t, y, r * 3.2);
+p.fill(soft, soft, soft, p.random(58, 98));
+p.circle(t, y, r * 3.2);
 
-    p.fill(core, core, core, p.random(225, 255));
-    p.circle(t, y, r);
+p.fill(core, core, core, p.random(236, 255));
+p.circle(t, y, r * 1.02);
   }
 
   // =========================
@@ -294,11 +291,11 @@ for (let i = 0; i < 18; i++) {
 
     const r = p.random(0.9, 2.8);
 
-    p.fill(210, 210, 210, p.random(42, 78));
-    p.circle(t, y, r * 4.0);
+    p.fill(188, 188, 188, p.random(58, 98));
+p.circle(t, y, r * 4.6);
 
-    p.fill(252, 252, 252, p.random(235, 255));
-    p.circle(t, y, r);
+p.fill(252, 252, 252, p.random(242, 255));
+p.circle(t, y, r * 1.06);
   }
 
   // =========================
@@ -310,11 +307,11 @@ for (let i = 0; i < 18; i++) {
     const cy = getCurveY(t);
     const y = cy + p.random(-spread, spread);
 
-    const g = p.random(42, 88);
-    const r = p.random(0.7, 1.9);
+    const g = p.random(28, 68);
+const r = p.random(0.85, 2.15);
 
-    p.fill(g, g, g, p.random(195, 255));
-    p.circle(t, y, r);
+p.fill(g, g, g, p.random(220, 255));
+p.circle(t, y, r);
   }
 
   // =========================
@@ -324,7 +321,7 @@ for (let i = 0; i < 18; i++) {
     const t = p.random(-halfLen * 0.54, halfLen * 0.42);
     const spread = getSpread(t) * 0.30;
     const cy = getCurveY(t);
-    clusterStar(t, cy + p.random(-spread, spread), p.random(1.4, 3.1));
+    clusterStar(t, cy + p.random(-spread, spread), p.random(1.8, 3.7));
   }
 
   // =========================
@@ -337,13 +334,13 @@ for (let i = 0; i < 18; i++) {
     const y = cy + p.random(-spread, spread);
 
     const r = p.random(0.45, 1.6);
-    const g = p.random(170, 210);
+    const g = p.random(148, 190);
 
-    p.fill(g, g, g, p.random(46, 90));
-    p.circle(t, y, r * 2.6);
+p.fill(g, g, g, p.random(64, 112));
+p.circle(t, y, r * 2.9);
 
-    p.fill(252, 252, 252, p.random(220, 255));
-    p.circle(t, y, r * 0.9);
+p.fill(252, 252, 252, p.random(232, 255));
+p.circle(t, y, r * 1.02);
   }
 
   // =========================
@@ -374,17 +371,17 @@ for (let i = 0; i < 18; i++) {
    function clusterStar(x, y, s) {
   p.noStroke();
 
-  p.fill(255, 255, 255, 48);
-  p.circle(x, y, s * 10);
+  p.fill(255, 255, 255, 62);
+  p.circle(x, y, s * 11.5);
 
-  p.fill(205, 205, 205, 132);
-  p.circle(x, y, s * 5.1);
+  p.fill(188, 188, 188, 156);
+  p.circle(x, y, s * 5.6);
 
-  p.fill(255, 255, 255, 250);
-  p.circle(x, y, s * 2.0);
+  p.fill(255, 255, 255, 252);
+  p.circle(x, y, s * 2.2);
 
   p.fill(255, 255, 255, 255);
-  p.circle(x, y, s * 0.95);
+  p.circle(x, y, s * 1.02);
 }
    function brightStar(x, y, s) {
   [
@@ -440,86 +437,59 @@ for (let i = 0; i < 18; i++) {
   p.drawingContext.setLineDash([]);
   p.pop();
 
-  const leftCenter = COL_L + COL_W_L / 2;
-  const rightCenter = COL_R + COL_W_R / 2;
+  const innerPad = 18;
+  const shiftRight = 14;
 
-  infoLabelCentered('MICRO ADN', leftCenter, INFO_Y, COL_W_L);
-  infoTextCentered(profile?.microADN || '—', leftCenter, INFO_Y + 44, COL_W_L, 120, 22, 28);
+  const leftX = COL_L + innerPad;
+  const rightX = COL_R + innerPad + shiftRight;
 
-  infoLabelCentered('TRIBU VIAJERA', rightCenter, INFO_Y, COL_W_R);
-  infoTextCentered(profile?.tribe || '—', rightCenter, INFO_Y + 44, COL_W_R, 80, 22, 28);
+  const textWLeft = COL_W_L - innerPad * 2;
+  const textWRight = COL_W_R - innerPad * 2 - shiftRight;
+
+  const leftEndX = COL_L + COL_W_L;
+  const rightEndX = COL_R + COL_W_R + shiftRight;
+
+  infoLabelLeft('MICRO ADN', leftX, INFO_Y, leftEndX);
+  infoTextLeft(profile?.microADN || '—', leftX, INFO_Y + 44, textWLeft, 120, 22, 28);
+
+  infoLabelLeft('TRIBU VIAJERA', rightX, INFO_Y, rightEndX);
+  infoTextLeft(profile?.tribe || '—', rightX, INFO_Y + 44, textWRight, 80, 22, 28);
 
   const DEST_Y = INFO_Y + 116;
-  infoLabelCentered('DESTINO', rightCenter, DEST_Y, COL_W_R);
-  infoTextCentered(destination || '—', rightCenter, DEST_Y + 44, COL_W_R, 70, 22, 28);
+  infoLabelLeft('DESTINO', rightX, DEST_Y, rightEndX);
+  infoTextLeft(destination || '—', rightX, DEST_Y + 44, textWRight, 70, 22, 28);
 }
 
-function infoLabelCentered(txt, cx, y, colWidth) {
+function infoLabelLeft(txt, x, y, colEndX) {
   p.noStroke();
-  p.fill(...TEXT_LIGHT, 234);
+  p.fill(...TEXT_LIGHT, 244);
   p.textFont(SERIF);
   p.textStyle(p.NORMAL);
-  p.textSize(17);
-  p.textAlign(p.CENTER);
+  p.textSize(16.5);
+  p.textAlign(p.LEFT);
 
-  const txtW = trackedTextWidth(txt, 2.1);
-  const startX = cx - txtW / 2;
-  const endX = cx + txtW / 2;
+  const endX = trackedTextLeft(txt, x, y, 2.1);
 
-  trackedTextCentered(txt, cx, y, 2.1);
-
-  const sidePadding = 14;
-  const lineLeft = cx - colWidth / 2;
-  const lineRight = cx + colWidth / 2;
-
+  if (endX + 16 < colEndX) {
   p.push();
   p.drawingContext.setLineDash([1, 5]);
-  p.stroke(...RULE, 170);
+  p.stroke(...RULE, 175);
   p.strokeWeight(0.55);
-
-  if (startX - sidePadding > lineLeft) {
-    p.line(lineLeft, y - 4, startX - sidePadding, y - 4);
-  }
-
-  if (endX + sidePadding < lineRight) {
-    p.line(endX + sidePadding, y - 4, lineRight, y - 4);
-  }
-
+  p.line(endX + 14, y - 4, colEndX, y - 4);
   p.drawingContext.setLineDash([]);
   p.pop();
 }
+}
 
-function infoTextCentered(txt, cx, y, w, h, size = 20, leading = 30) {
+function infoTextLeft(txt, x, y, w, h, size = 20, leading = 30) {
   p.noStroke();
-  p.fill(...TEXT_DARK, 240);
+  p.fill(...TEXT_DARK, 242);
   p.textFont(SERIF);
   p.textStyle(p.NORMAL);
   p.textSize(size);
   p.textLeading(leading);
-  p.textAlign(p.CENTER);
-  p.text(txt, cx - w / 2, y, w, h);
-}
-
-function trackedTextWidth(str, spacing) {
-  let total = 0;
-  const chars = String(str).split('');
-  chars.forEach((c, i) => {
-    total += p.textWidth(c);
-    if (i < chars.length - 1) total += spacing;
-  });
-  return total;
-}
-
-function trackedTextCentered(str, cx, y, spacing) {
-  const totalW = trackedTextWidth(str, spacing);
-  let x = cx - totalW / 2;
-  const chars = String(str).split('');
-
-  chars.forEach((c, i) => {
-    p.text(c, x, y);
-    x += p.textWidth(c);
-    if (i < chars.length - 1) x += spacing;
-  });
+  p.textAlign(p.LEFT);
+  p.text(txt, x, y, w, h);
 }
 
     function infoLabel(txt, x, y, lineEndX) {
