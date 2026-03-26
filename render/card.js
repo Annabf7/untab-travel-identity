@@ -72,8 +72,6 @@ function renderCard(profile, containerId, answers = {}) {
 
     const seed = Array.from(profile?.name || 'x').reduce((s, c) => s + c.charCodeAt(0), 42);
     const axes = normalizeAxes(profile?.normalizedAxes || {});
-    const dominantAxis = getDominantAxis(axes, profile?.dominantAxis);
-    const secondaryAxis = getSecondaryAxis(axes, dominantAxis);
     const destination = getDestination(profile, answers);
 
     p.setup = function () {
@@ -208,164 +206,93 @@ function renderCard(profile, containerId, answers = {}) {
     }
 
     function drawNebula() {
-      // --- Vector de gravetat ponderat (pesos al quadrat per amplificar diferències) ---
+      // Pesos al quadrat → densitat proporcional al percentatge²
       const axisNames = ['exploracion', 'cultura', 'placer', 'calma'];
       const sq = axisNames.map(a => Math.pow(axes[a] || 0, 2));
       const sqSum = sq.reduce((a, b) => a + b, 0) || 1;
       const w = sq.map(s => s / sqSum);
 
-      let gx = 0, gy = 0;
-      axisNames.forEach((a, i) => {
-        gx += w[i] * (CORNERS[a][0] - Q_CX);
-        gy += w[i] * (CORNERS[a][1] - Q_CY);
-      });
-
-      const gMag = Math.sqrt(gx * gx + gy * gy);
-      const angle = gMag > 1 ? Math.atan2(gy, gx) : 0;
-
-      // Diagonal completa com a referència de longitud
-      const diag = Math.sqrt(Math.pow(Q_R - Q_L, 2) + Math.pow(Q_B - Q_T, 2));
-
-      // Centre de la nebulosa: desplaçat cap al vector de gravetat
-      const ncx = Q_CX + gx * 0.65;
-      const ncy = Q_CY + gy * 0.65;
-
-      // Corba secundària: l'eix secundari determina el costat de la corba
-      const secVal = axes[secondaryAxis] || 20;
-      const secCorner = CORNERS[secondaryAxis];
-      const secVecX = secCorner[0] - Q_CX;
-      const secVecY = secCorner[1] - Q_CY;
-      const perp = -Math.sin(angle) * secVecX + Math.cos(angle) * secVecY;
-      const secSign = perp >= 0 ? 1 : -1;
-      const secInfluence = (secVal / 100) * 0.48;
-
-      const nLen = diag * 0.72;
-      const halfLen = nLen * 0.5;
-
       p.push();
-      p.translate(ncx, ncy);
-      p.rotate(angle);
       p.noStroke();
 
-      const getSpread = (t) => {
-        const norm = Math.min(1, Math.abs(t) / halfLen);
-        const base = Math.pow(1 - norm, 0.30);
-        const asymmetry = t > 0 ? 0.82 : 1.08;
-        return 2 + base * 92 * asymmetry;
-      };
+      // 4 clústers independents: densitat proporcional al pes de cada eix
+      axisNames.forEach((axis, i) => {
+        const [cx, cy] = CORNERS[axis];
+        const wi = w[i];
+        const nPoints = Math.round(wi * 520);
+        if (nPoints < 1) return;
 
-      const getCurveY = (t) => {
-        const n = t / halfLen;
-        return secSign * Math.sin(n * Math.PI * 0.82) * (8 + secInfluence * 12);
-      };
+        // Centre del clúster: entre centre quadrant i cantonada
+        const pull = 0.25 + wi * 0.80;
+        const clx = Q_CX + (cx - Q_CX) * pull;
+        const cly = Q_CY + (cy - Q_CY) * pull;
 
-      // microdust principal
-      for (let i = 0; i < 280; i++) {
-        const t = p.random(-halfLen * 0.96, halfLen * 0.82);
-        const spread = getSpread(t) * 0.72;
-        const cy = getCurveY(t);
-        const y = cy + p.random(-spread, spread);
+        // Spread proporcional al pes
+        const spread = 40 + wi * 200;
 
-        const r = p.random(0.35, 1.25);
+        // microdust (55%)
+        const nDust = Math.round(nPoints * 0.55);
+        for (let j = 0; j < nDust; j++) {
+          const px = clx + p.randomGaussian(0, spread * 0.90);
+          const py = cly + p.randomGaussian(0, spread * 0.90);
+          const r = p.random(0.35, 1.25);
+          p.fill(...STAR_MID, p.random(62, 102));
+          p.circle(px, py, r * 3.4);
+          p.fill(...STAR_WHITE, p.random(236, 255));
+          p.circle(px, py, r * 1.06);
+        }
 
-        p.fill(...STAR_MID, p.random(62, 102));
-        p.circle(t, y, r * 3.4);
+        // punts estructurals (30%)
+        const nStruct = Math.round(nPoints * 0.30);
+        for (let j = 0; j < nStruct; j++) {
+          const px = clx + p.randomGaussian(0, spread * 0.65);
+          const py = cly + p.randomGaussian(0, spread * 0.65);
+          const r = p.random(0.9, 2.8);
+          p.fill(...STAR_MID, p.random(72, 112));
+          p.circle(px, py, r * 4.9);
+          p.fill(...STAR_WHITE, p.random(242, 255));
+          p.circle(px, py, r * 1.12);
+        }
 
-        p.fill(...STAR_WHITE, p.random(236, 255));
-        p.circle(t, y, r * 1.06);
-      }
+        // grafita (12%)
+        const nDark = Math.round(nPoints * 0.12);
+        for (let j = 0; j < nDark; j++) {
+          const px = clx + p.randomGaussian(0, spread * 0.50);
+          const py = cly + p.randomGaussian(0, spread * 0.50);
+          const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
+          const r = p.random(0.9, 2.35);
+          p.fill(...darkColor, p.random(218, 255));
+          p.circle(px, py, r);
+        }
 
-      // punts estructurals
-      for (let i = 0; i < 110; i++) {
-        const t = p.random(-halfLen * 0.90, halfLen * 0.76);
-        const spread = getSpread(t) * 0.56;
-        const cy = getCurveY(t);
-        const y = cy + p.random(-spread, spread);
+        // anchors brillants (eixos > 12%)
+        if (wi > 0.12) {
+          const nAnchors = Math.max(1, Math.round(wi * 10));
+          for (let j = 0; j < nAnchors; j++) {
+            const px = clx + p.randomGaussian(0, spread * 0.30);
+            const py = cly + p.randomGaussian(0, spread * 0.30);
+            clusterStar(px, py, p.random(1.8, 3.7));
+          }
+        }
+      });
 
-        const r = p.random(0.9, 2.8);
-
-        p.fill(...STAR_MID, p.random(72, 112));
-        p.circle(t, y, r * 4.9);
-
-        p.fill(...STAR_WHITE, p.random(242, 255));
-        p.circle(t, y, r * 1.12);
-      }
-
-      // punts foscos perifèrics
-      for (let i = 0; i < 58; i++) {
-        const t = p.random(-halfLen * 0.86, halfLen * 0.74);
-        const spread = getSpread(t) * 0.70;
-        const cy = getCurveY(t);
-        const y = cy + p.random(-spread, spread);
-
-        const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-        const r = p.random(0.9, 2.35);
-
-        p.fill(...darkColor, p.random(218, 255));
-        p.circle(t, y, r);
-      }
-
-      // anchors brillants
-      for (let i = 0; i < 22; i++) {
-        const t = p.random(-halfLen * 0.54, halfLen * 0.42);
-        const spread = getSpread(t) * 0.30;
-        const cy = getCurveY(t);
-        clusterStar(t, cy + p.random(-spread, spread), p.random(1.8, 3.7));
-      }
-
-      // densitat central extra
-      for (let i = 0; i < 320; i++) {
-        const t = p.random(-halfLen * 0.24, halfLen * 0.22);
-        const spread = getSpread(t) * 1.08;
-        const cy = getCurveY(t);
-        const y = cy + p.random(-spread, spread);
-
-        const r = p.random(0.4, 1.75);
-
-        p.fill(...STAR_MID, p.random(72, 118));
-        p.circle(t, y, r * 3.1);
-
-        p.fill(...STAR_WHITE, p.random(232, 255));
-        p.circle(t, y, r * 1.05);
-      }
-
-      // punts perifèrics grans al centre
-      for (let i = 0; i < 12; i++) {
-        const t = p.random(-halfLen * 0.28, halfLen * 0.24);
-        const spread = getSpread(t) * 0.78;
-        const cy = getCurveY(t);
-        const y = cy + p.random(-spread, spread);
-
-        const r = p.random(1.8, 4.4);
-
-        p.fill(...STAR_WHITE, p.random(56, 94));
-        p.circle(t, y, r * 3.5);
-
-        p.fill(...STAR_WHITE, p.random(235, 255));
-        p.circle(t, y, r);
-      }
-
-      // activitat extra al nucli
-      for (let i = 0; i < 130; i++) {
-        const t = p.random(-halfLen * 0.18, halfLen * 0.18);
-        const spread = getSpread(t) * 1.15;
-        const cy = getCurveY(t);
-        const y = cy + p.random(-spread, spread);
-
-        const useWhite = p.random() > 0.38;
+      // Densitat extra al nucli fix (centre dels eixos)
+      for (let j = 0; j < 90; j++) {
+        const px = Q_CX + p.randomGaussian(0, 28);
+        const py = Q_CY + p.randomGaussian(0, 28);
         const r = p.random(0.8, 2.8);
-
-        if (useWhite) {
+        if (p.random() > 0.38) {
           p.fill(...STAR_WHITE, p.random(232, 255));
-          p.circle(t, y, r);
+          p.circle(px, py, r);
         } else {
           const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
           p.fill(...darkColor, p.random(210, 248));
-          p.circle(t, y, r * 0.85);
+          p.circle(px, py, r * 0.85);
         }
       }
 
-      brightStar(0, getCurveY(0) * 0.18, 18.5);
+      // Estrella central sempre al centre fix dels eixos
+      brightStar(Q_CX, Q_CY, 18.5);
 
       p.pop();
     }
@@ -510,17 +437,6 @@ const rightX = outerMargin + colWidth + centerGap + opticalNudge + colsShift;
       const n = Number(v);
       if (!Number.isFinite(n)) return 0;
       return Math.max(0, Math.min(100, Math.round(n)));
-    }
-
-    function getDominantAxis(axesObj, fallback) {
-      if (fallback && axesObj[fallback] != null) return fallback;
-      return Object.entries(axesObj).sort((a, b) => b[1] - a[1])[0]?.[0] || 'placer';
-    }
-
-    function getSecondaryAxis(axesObj, dominant) {
-      return Object.entries(axesObj)
-        .filter(([key]) => key !== dominant)
-        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'cultura';
     }
 
     function getDestination(profileObj, answersObj) {
