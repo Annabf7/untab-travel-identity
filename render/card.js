@@ -212,12 +212,26 @@ function renderCard(profile, containerId, answers = {}) {
       const total = vals.reduce((a, b) => a + b, 0) || 100;
       const linearW = vals.map(v => v / total);
 
-      const TOTAL_POINTS = 900; // +20% respecte l'anterior
-      const MAX_REACH    = 560; // px — arriba gairebé fins a les cantonades
-      const MAX_SPREAD   = 85;  // amplada màxima al centre
+      const TOTAL_POINTS = 1400; // més punts totals
+      const MAX_REACH    = 900;  // px — els punts arriben fins a les puntes dels eixos
+      const MAX_SPREAD   = 85;   // amplada màxima al centre
 
       p.push();
       p.noStroke();
+
+      // Estructurals sempre al centre — ring rebaixat i lleugerament irregular
+      for (let j = 0; j < 160; j++) {
+        const px = Q_CX + p.randomGaussian(0, 58);
+        const py = Q_CY + p.randomGaussian(0, 58);
+        const r = p.random(0.9, 2.8);
+        // Outer ring: alpha baix + jitter per trencar la circumferència perfecta
+        const jx = p.random(-r * 0.6, r * 0.6);
+        const jy = p.random(-r * 0.6, r * 0.6);
+        p.fill(...STAR_MID, p.random(35, 62));
+        p.circle(px + jx, py + jy, r * 4.9);
+        p.fill(...STAR_WHITE, p.random(242, 255));
+        p.circle(px, py, r * 1.12);
+      }
 
       // 4 cons: cada eix surt del centre, s'eixampla i s'estreny cap a la punta
       axisNames.forEach((axis, i) => {
@@ -247,29 +261,28 @@ function renderCard(profile, containerId, answers = {}) {
           const py = Q_CY + uy * t +   ux  * s;
 
           const type = p.random();
-          if (type < 0.55) {
-            // microdust
+          if (type < 0.18) {
+            // microdust — segueix els eixos
             const r = p.random(0.35, 1.25);
             p.fill(...STAR_MID, p.random(62, 102));
             p.circle(px, py, r * 3.4);
             p.fill(...STAR_WHITE, p.random(236, 255));
             p.circle(px, py, r * 1.06);
-          } else if (type < 0.85) {
-            // punts estructurals
-            const r = p.random(0.9, 2.8);
-            p.fill(...STAR_MID, p.random(72, 112));
-            p.circle(px, py, r * 4.9);
-            p.fill(...STAR_WHITE, p.random(242, 255));
-            p.circle(px, py, r * 1.12);
-          } else if (type < 0.97) {
-            // grafita fosc
+          } else if (type < 0.90) {
+            // grafita fosc petit — predominant als eixos
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-            const r = p.random(0.9, 2.35);
-            p.fill(...darkColor, p.random(218, 255));
+            const r = p.random(0.4, 1.6);
+            p.fill(...darkColor, p.random(200, 255));
+            p.circle(px, py, r);
+          } else if (type < 0.97) {
+            // grafita fosc mig
+            const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
+            const r = p.random(1.0, 2.2);
+            p.fill(...darkColor, p.random(180, 240));
             p.circle(px, py, r);
           } else {
-            // anchor brillant
-            clusterStar(px, py, p.random(1.8, 3.7));
+            // anchor discret
+            clusterStar(px, py, p.random(1.0, 2.2));
           }
         }
       });
@@ -297,17 +310,19 @@ function renderCard(profile, containerId, answers = {}) {
     function clusterStar(x, y, s) {
       p.noStroke();
 
-      p.fill(...STAR_WHITE, 68);
-      p.circle(x, y, s * 12.5);
+      // Halo exterior molt reduït
+      p.fill(...STAR_WHITE, 40);
+      p.circle(x, y, s * 5.5);
 
-      p.fill(...STAR_MID, 148);
-      p.circle(x, y, s * 5.8);
+      // Ring gris irregular: posició lleugerament desplaçada per trencar la circumferència
+      const jx = p.random(-s * 0.8, s * 0.8);
+      const jy = p.random(-s * 0.8, s * 0.8);
+      p.fill(...STAR_MID, 72);
+      p.circle(x + jx, y + jy, s * 2.8);
 
-      p.fill(...STAR_WHITE, 250);
-      p.circle(x, y, s * 2.25);
-
+      // Nucli petit brillant
       p.fill(...STAR_WHITE, 255);
-      p.circle(x, y, s * 1.08);
+      p.circle(x, y, s * 0.9);
     }
 
     function brightStar(x, y, s) {
