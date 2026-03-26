@@ -1,5 +1,5 @@
 // ===========================
-// render/card.js — layout + scale pass
+// render/card.js — premium final pass
 // Canvas 1080×1350 — p5.js instance mode
 // ===========================
 
@@ -10,43 +10,40 @@ function renderCard(profile, containerId, answers = {}) {
 
   new p5(function (p) {
 
-    // ---- Canvas ----
     const W = 1080;
     const H = 1350;
-    const MARGIN = 88;
+    const MARGIN = 120;
 
-    // ---- Fonts ----
     const SERIF = 'Cormorant Garamond';
     const SANS = '"Helvetica Neue", Arial, sans-serif';
 
-    // ---- Colors (closer to reference) ----
-    const BG = [252, 249, 247];
-    const TEXT_DARK = [92, 84, 86];
-    const TEXT_MAIN = [108, 99, 102];
-    const TEXT_SOFT = [145, 136, 140];
-    const TEXT_LIGHT = [176, 167, 171];
+    // more faithful palette
+    const BG = [250, 247, 245];
+    const TEXT_DARK = [96, 88, 91];
+    const TEXT_MAIN = [112, 103, 107];
+    const TEXT_SOFT = [150, 140, 145];
+    const TEXT_LIGHT = [181, 172, 176];
     const RULE = [220, 214, 216];
-    const GRID = [222, 216, 218];
+    const GRID = [223, 217, 219];
 
-    // ---- Top chart area (wider occupation) ----
-    const Q_L = 142;
-    const Q_R = 938;
-    const Q_T = 170;
+    // wider and better occupied upper zone
+    const Q_L = 150;
+    const Q_R = 930;
+    const Q_T = 172;
     const Q_B = 792;
     const Q_CX = (Q_L + Q_R) / 2;
     const Q_CY = (Q_T + Q_B) / 2;
 
-    // ---- Vertical rhythm (more filled) ----
-    const HEADER_Y = 84;
+    const HEADER_Y = 88;
     const DIV1_Y = 862;
     const NAME_Y = 1008;
     const DIV2_Y = 1042;
     const INFO_Y = 1094;
 
-    // ---- Bottom info grid ----
-    const COL_L = 92;
-    const COL_MID = 518;
-    const COL_R = 562;
+    // bottom layout
+    const COL_L = 120;
+    const COL_MID = 520;
+    const COL_R   = 660;
     const COL_W_L = COL_MID - COL_L - 20;
     const COL_W_R = W - MARGIN - COL_R;
 
@@ -92,64 +89,54 @@ function renderCard(profile, containerId, answers = {}) {
       drawGrid();
       drawNebula();
       drawAxisLabels();
-      hRule(MARGIN, DIV1_Y, W - MARGIN, 0.72);
+      hRule(MARGIN, DIV1_Y, W - MARGIN, 0.74);
       drawName();
       hRule(MARGIN, DIV2_Y, W - MARGIN, 0.56);
       drawInfoBlock();
     };
 
-    // =========================
-    // Background
-    // =========================
     function drawBackground() {
       p.background(...BG);
 
       p.push();
       p.noStroke();
 
-      // warm paper grain
-      for (let i = 0; i < 4600; i++) {
+      for (let i = 0; i < 4200; i++) {
         p.fill(255, 255, 255, p.random(4, 8));
-        p.circle(p.random(W), p.random(H), p.random(0.55, 1.2));
+        p.circle(p.random(W), p.random(H), p.random(0.55, 1.15));
       }
 
-      for (let i = 0; i < 2400; i++) {
-        p.fill(214, 208, 210, p.random(2, 5));
+      for (let i = 0; i < 2200; i++) {
+        p.fill(218, 211, 214, p.random(2, 5));
         p.circle(p.random(W), p.random(H), p.random(0.45, 0.95));
       }
 
       p.pop();
     }
 
-    // =========================
-    // Header
-    // =========================
     function drawHeader() {
       p.noStroke();
-      p.fill(...TEXT_SOFT, 230);
+      p.fill(...TEXT_SOFT, 240);
       p.textFont(SANS);
       p.textStyle(p.NORMAL);
-      p.textSize(15);
-      trackedTextCenter('UNTAB TRAVEL', W / 2, HEADER_Y, 7.5);
+      p.textSize(24);
+      trackedTextCenter('UNTAB TRAVEL', W / 2, HEADER_Y, 8);
     }
 
-    // =========================
-    // Grid
-    // =========================
     function drawGrid() {
       p.push();
 
-      p.stroke(...GRID, 94);
+      p.stroke(...GRID, 90);
       p.strokeWeight(0.55);
       p.drawingContext.setLineDash([4, 10]);
       p.line(Q_L, Q_CY, Q_R, Q_CY);
       p.line(Q_CX, Q_T, Q_CX, Q_B);
 
-      p.stroke(...GRID, 76);
-      p.line(Q_CX, Q_CY, Q_L + 130, Q_T + 130);
-      p.line(Q_CX, Q_CY, Q_R - 130, Q_T + 130);
-      p.line(Q_CX, Q_CY, Q_L + 130, Q_B - 130);
-      p.line(Q_CX, Q_CY, Q_R - 130, Q_B - 130);
+      p.stroke(...GRID, 72);
+      p.line(Q_CX, Q_CY, Q_L + 132, Q_T + 132);
+      p.line(Q_CX, Q_CY, Q_R - 132, Q_T + 132);
+      p.line(Q_CX, Q_CY, Q_L + 132, Q_B - 132);
+      p.line(Q_CX, Q_CY, Q_R - 132, Q_B - 132);
 
       p.drawingContext.setLineDash([]);
 
@@ -162,41 +149,34 @@ function renderCard(profile, containerId, answers = {}) {
       p.pop();
     }
 
-    // =========================
-    // Axis labels
-    // =========================
     function drawAxisLabels() {
       Object.entries(CORNERS).forEach(([axis, [cx, cy]]) => {
         const isRight = cx > Q_CX;
         const isBottom = cy > Q_CY;
 
-        // push slightly inward
-        const x = isRight ? cx - 8 : cx + 8;
-        const nameY = isBottom ? cy - 10 : cy + 66;
-        const pctY = nameY + 28;
+        const x = isRight ? cx - 2 : cx + 2;
+        const nameY = isBottom ? cy - 8 : cy + 68;
+        const pctY = nameY + 37; // more top/bottom breathing
 
         p.noStroke();
         p.textAlign(isRight ? p.RIGHT : p.LEFT);
 
-        p.fill(...TEXT_MAIN, 240);
+        p.fill(...TEXT_MAIN, 242);
         p.textFont(SERIF);
         p.textStyle(p.NORMAL);
-        p.textSize(29);
+        p.textSize(31);
         p.text(AXIS_LABEL[axis], x, nameY);
 
-        p.fill(...TEXT_SOFT, 225);
-        p.textFont(SANS);
+        p.fill(...TEXT_SOFT, 228);
+        p.textFont(SERIF);
         p.textStyle(p.NORMAL);
-        p.textSize(13);
+        p.textSize(15);
         p.text(`+${axes[axis]}%`, x, pctY);
       });
 
       p.textAlign(p.LEFT);
     }
 
-    // =========================
-    // Nebula
-    // =========================
     function drawNebula() {
       const domCorner = CORNERS[dominantAxis];
       const oppCorner = CORNERS[OPPOSITE[dominantAxis]];
@@ -209,99 +189,109 @@ function renderCard(profile, containerId, answers = {}) {
       const domWeight = (axes[dominantAxis] || 25) / 100;
       const secWeight = (axes[secondaryAxis] || 20) / 100;
 
-      const nLen = diag * 0.54;
-      const shift = 0.11 + domWeight * 0.08;
+      const nLen = diag * 0.58;
+      const shift = 0.08 + domWeight * 0.08;
 
       const ncx = Q_CX + (domCorner[0] - Q_CX) * shift;
       const ncy = Q_CY + (domCorner[1] - Q_CY) * shift;
 
-      const spreadBoost = 1 + secWeight * 0.55;
-      const densityBoost = 1 + domWeight * 0.65;
+      const spreadBoost = 1 + secWeight * 0.65;
+      const densityBoost = 1 + domWeight * 0.78;
 
       p.push();
       p.translate(ncx, ncy);
       p.rotate(angle);
       p.noStroke();
 
-      // layer 1 — soft gray atmospheric body
-      for (let i = 0; i < Math.round(80 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.50, nLen * 0.36);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.50));
-        const spread = p.random(16, 72) * decay * spreadBoost;
+      // 1. deep gray atmospheric base
+      for (let i = 0; i < Math.round(120 * densityBoost); i++) {
+        const t = p.random(-nLen * 0.52, nLen * 0.38);
+        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.52));
+        const spread = p.random(18, 82) * decay * spreadBoost;
 
-        const gray = p.random(204, 228);
-        p.fill(gray, gray, gray, p.random(8, 18));
+        const gray = p.random(198, 224);
+        p.fill(gray, gray, gray, p.random(8, 22));
         p.ellipse(
           t,
           p.random(-spread, spread),
-          p.random(48, 150) * decay,
-          p.random(20, 88) * decay
+          p.random(55, 165) * decay,
+          p.random(24, 92) * decay
         );
       }
 
-      // layer 2 — diffuse white haze
-      for (let i = 0; i < Math.round(72 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.44, nLen * 0.28);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.44));
-        const spread = p.random(10, 46) * decay * spreadBoost;
+      // 2. white soft glow layer
+      for (let i = 0; i < Math.round(100 * densityBoost); i++) {
+        const t = p.random(-nLen * 0.48, nLen * 0.32);
+        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.48));
+        const spread = p.random(10, 52) * decay * spreadBoost;
 
-        p.fill(255, 255, 255, p.random(10, 26));
+        p.fill(255, 255, 255, p.random(10, 30));
         p.ellipse(
           t,
           p.random(-spread, spread),
-          p.random(34, 110) * decay,
-          p.random(16, 58) * decay
+          p.random(36, 118) * decay,
+          p.random(18, 62) * decay
         );
       }
 
-      // layer 3 — darker internal mist
-      for (let i = 0; i < Math.round(28 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.34, nLen * 0.22);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.34));
-        const spread = p.random(5, 24) * decay;
+      // 3. denser inner mass
+      for (let i = 0; i < Math.round(56 * densityBoost); i++) {
+        const t = p.random(-nLen * 0.30, nLen * 0.22);
+        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.30));
+        const spread = p.random(4, 24) * decay;
 
         const gray = p.random(188, 214);
-        p.fill(gray, gray, gray, p.random(10, 22));
+        p.fill(gray, gray, gray, p.random(14, 30));
         p.ellipse(
           t,
           p.random(-spread, spread),
-          p.random(22, 72) * decay,
-          p.random(12, 34) * decay
+          p.random(28, 88) * decay,
+          p.random(14, 40) * decay
         );
       }
 
-      // layer 4 — star dust / dots
-      for (let i = 0; i < Math.round(120 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.50, nLen * 0.34);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.50));
-        const spread = p.random(0, 38) * decay * spreadBoost;
+      // 4. star dust and points
+      for (let i = 0; i < Math.round(185 * densityBoost); i++) {
+        const t = p.random(-nLen * 0.54, nLen * 0.36);
+        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.54));
+        const spread = p.random(0, 42) * decay * spreadBoost;
 
         const px = t;
         const py = p.random(-spread, spread);
-        const r = p.random(0.8, 4.1);
-        const bright = 0.36 + decay * 0.9;
+        const r = p.random(0.7, 4.4);
+        const bright = 0.42 + decay * 0.92;
 
-        const g1 = p.random(222, 245);
-        p.fill(g1, g1, g1, p.random(20, 52) * bright);
-        p.circle(px, py, r * 5.2);
+        const g1 = p.random(214, 238);
+        p.fill(g1, g1, g1, p.random(24, 60) * bright);
+        p.circle(px, py, r * 6.2);
 
-        p.fill(255, 255, 255, p.random(70, 150) * bright);
-        p.circle(px, py, r * 2.2);
+        p.fill(255, 255, 255, p.random(90, 175) * bright);
+        p.circle(px, py, r * 2.4);
 
-        const g2 = p.random(242, 255);
-        p.fill(g2, g2, g2, p.random(170, 255));
+        const g2 = p.random(236, 255);
+        p.fill(g2, g2, g2, p.random(180, 255));
         p.circle(px, py, r);
       }
 
-      // highlighted clusters
-      for (let i = 0; i < 11; i++) {
-        const t = p.random(-nLen * 0.40, nLen * 0.24);
-        const py = p.random(-12, 12);
-        clusterStar(t, py, p.random(1.8, 3.8));
+      // 5. brighter clusters
+      for (let i = 0; i < 18; i++) {
+        const t = p.random(-nLen * 0.42, nLen * 0.24);
+        const py = p.random(-14, 14);
+        clusterStar(t, py, p.random(1.8, 4.6));
       }
 
-      // central star
-      brightStar(-nLen * 0.06, 0, 12.5 + domWeight * 3.6);
+      // 6. central luminous fog
+      for (let i = 0; i < 12; i++) {
+        p.fill(255, 255, 255, p.random(10, 24));
+        p.ellipse(
+          p.random(-35, 20),
+          p.random(-18, 18),
+          p.random(90, 180),
+          p.random(36, 80)
+        );
+      }
+
+      brightStar(-nLen * 0.04, 0, 15 + domWeight * 4.5);
 
       p.pop();
     }
@@ -309,50 +299,47 @@ function renderCard(profile, containerId, answers = {}) {
     function clusterStar(x, y, s) {
       p.noStroke();
 
-      p.fill(255, 255, 255, 18);
-      p.circle(x, y, s * 14);
+      p.fill(255, 255, 255, 16);
+      p.circle(x, y, s * 18);
 
-      p.fill(245, 245, 245, 48);
-      p.circle(x, y, s * 8);
+      p.fill(242, 242, 242, 42);
+      p.circle(x, y, s * 10);
 
-      p.fill(255, 255, 255, 115);
-      p.circle(x, y, s * 4);
+      p.fill(255, 255, 255, 105);
+      p.circle(x, y, s * 4.4);
 
       p.fill(255, 255, 255, 250);
-      p.circle(x, y, s * 1.2);
+      p.circle(x, y, s * 1.25);
     }
 
     function brightStar(x, y, s) {
       [
-        [s * 28, 3],
-        [s * 18, 9],
-        [s * 12, 18],
-        [s * 7, 38],
-        [s * 3.4, 105]
+        [s * 34, 4],
+        [s * 24, 8],
+        [s * 16, 18],
+        [s * 10, 36],
+        [s * 5, 86]
       ].forEach(([r, a]) => {
         p.noStroke();
         p.fill(255, 255, 255, a);
         p.circle(x, y, r);
       });
 
-      p.stroke(255, 255, 255, 150);
-      p.strokeWeight(1.1);
-      p.line(x - s * 15, y, x + s * 15, y);
-      p.line(x, y - s * 15, x, y + s * 15);
+      p.stroke(255, 255, 255, 158);
+      p.strokeWeight(1.2);
+      p.line(x - s * 16, y, x + s * 16, y);
+      p.line(x, y - s * 16, x, y + s * 16);
 
-      p.stroke(245, 245, 245, 72);
-      p.strokeWeight(0.7);
-      p.line(x - s * 8.5, y - s * 8.5, x + s * 8.5, y + s * 8.5);
-      p.line(x + s * 8.5, y - s * 8.5, x - s * 8.5, y + s * 8.5);
+      p.stroke(246, 246, 246, 80);
+      p.strokeWeight(0.8);
+      p.line(x - s * 9, y - s * 9, x + s * 9, y + s * 9);
+      p.line(x + s * 9, y - s * 9, x - s * 9, y + s * 9);
 
       p.noStroke();
       p.fill(255, 255, 255, 255);
-      p.circle(x, y, s * 1.45);
+      p.circle(x, y, s * 1.52);
     }
 
-    // =========================
-    // Rules
-    // =========================
     function hRule(x1, y, x2, alpha = 0.5) {
       p.push();
       p.stroke(...RULE, 255 * alpha);
@@ -361,22 +348,16 @@ function renderCard(profile, containerId, answers = {}) {
       p.pop();
     }
 
-    // =========================
-    // Name
-    // =========================
     function drawName() {
       p.noStroke();
-      p.fill(...TEXT_MAIN, 242);
+      p.fill(...TEXT_MAIN, 244);
       p.textFont(SERIF);
       p.textStyle(p.NORMAL);
-      p.textSize(50);
+      p.textSize(54);
       p.textAlign(p.LEFT);
       p.text(profile?.name || 'Viajero', MARGIN, NAME_Y);
     }
 
-    // =========================
-    // Info block
-    // =========================
     function drawInfoBlock() {
       p.push();
       p.drawingContext.setLineDash([2, 7]);
@@ -387,25 +368,25 @@ function renderCard(profile, containerId, answers = {}) {
       p.pop();
 
       infoLabel('MICRO ADN', COL_L, INFO_Y, COL_MID - 16);
-      infoText(profile?.microADN || '—', COL_L, INFO_Y + 34, COL_W_L, 112, 23, 32);
+      infoText(profile?.microADN || '—', COL_L, INFO_Y + 34, COL_W_L, 112, 20, 30);
 
       infoLabel('TRIBU VIAJERA', COL_R, INFO_Y, W - MARGIN);
-      infoText(profile?.tribe || '—', COL_R, INFO_Y + 34, COL_W_R, 78, 23, 32);
+      infoText(profile?.tribe || '—', COL_R, INFO_Y + 34, COL_W_R, 80, 20, 30);
 
-      const DEST_Y = INFO_Y + 154;
+      const DEST_Y = INFO_Y + 116;
       infoLabel('DESTINO', COL_R, DEST_Y, W - MARGIN);
-      infoText(destination || '—', COL_R, DEST_Y + 34, COL_W_R, 78, 23, 32);
+      infoText(destination || '—', COL_R, DEST_Y + 34, COL_W_R, 80, 20, 30);
     }
 
     function infoLabel(txt, x, y, lineEndX) {
       p.noStroke();
       p.fill(...TEXT_LIGHT, 238);
-      p.textFont(SANS);
+      p.textFont(SERIF); // same visual family for all
       p.textStyle(p.NORMAL);
-      p.textSize(13);
+      p.textSize(17);
       p.textAlign(p.LEFT);
 
-      const endX = trackedTextLeft(txt, x, y, 2.2);
+      const endX = trackedTextLeft(txt, x, y, 2.1);
 
       if (endX + 10 < lineEndX) {
         p.push();
@@ -418,9 +399,9 @@ function renderCard(profile, containerId, answers = {}) {
       }
     }
 
-    function infoText(txt, x, y, w, h, size = 22, leading = 31) {
+    function infoText(txt, x, y, w, h, size = 20, leading = 30) {
       p.noStroke();
-      p.fill(...TEXT_DARK, 242);
+      p.fill(...TEXT_DARK, 244);
       p.textFont(SERIF);
       p.textStyle(p.NORMAL);
       p.textSize(size);
@@ -429,9 +410,6 @@ function renderCard(profile, containerId, answers = {}) {
       p.text(txt, x, y, w, h);
     }
 
-    // =========================
-    // Helpers
-    // =========================
     function normalizeAxes(raw) {
       return {
         exploracion: clampPercent(raw?.exploracion ?? 25),
@@ -480,7 +458,6 @@ function renderCard(profile, containerId, answers = {}) {
       const widths = chars.map(c => p.textWidth(c));
       const total = widths.reduce((s, w) => s + w, 0) + spacing * (chars.length - 1);
       let x = cx - total / 2;
-
       p.textAlign(p.LEFT);
       chars.forEach((c, i) => {
         p.text(c, x, y);
