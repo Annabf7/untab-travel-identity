@@ -206,80 +206,78 @@ function renderCard(profile, containerId, answers = {}) {
     }
 
     function drawNebula() {
-      // Pesos al quadrat → densitat proporcional al percentatge²
+      // Pesos lineals (percentatges raw): densitat i abast directament proporcionals al %
       const axisNames = ['exploracion', 'cultura', 'placer', 'calma'];
-      const sq = axisNames.map(a => Math.pow(axes[a] || 0, 2));
-      const sqSum = sq.reduce((a, b) => a + b, 0) || 1;
-      const w = sq.map(s => s / sqSum);
+      const vals = axisNames.map(a => axes[a] || 0);
+      const total = vals.reduce((a, b) => a + b, 0) || 100;
+      const linearW = vals.map(v => v / total);
+
+      const TOTAL_POINTS = 900; // +20% respecte l'anterior
+      const MAX_REACH    = 560; // px — arriba gairebé fins a les cantonades
+      const MAX_SPREAD   = 85;  // amplada màxima al centre
 
       p.push();
       p.noStroke();
 
-      // 4 clústers independents: densitat proporcional al pes de cada eix
+      // 4 cons: cada eix surt del centre, s'eixampla i s'estreny cap a la punta
       axisNames.forEach((axis, i) => {
         const [cx, cy] = CORNERS[axis];
-        const wi = w[i];
-        const nPoints = Math.round(wi * 520);
+        const wi = linearW[i];
+        const nPoints = Math.round(wi * TOTAL_POINTS);
         if (nPoints < 1) return;
 
-        // Centre del clúster: entre centre quadrant i cantonada
-        const pull = 0.25 + wi * 0.80;
-        const clx = Q_CX + (cx - Q_CX) * pull;
-        const cly = Q_CY + (cy - Q_CY) * pull;
+        // Vector unitari des del centre cap a la cantonada
+        const dx = cx - Q_CX;
+        const dy = cy - Q_CY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const ux = dx / dist;
+        const uy = dy / dist;
 
-        // Spread proporcional al pes
-        const spread = 40 + wi * 200;
+        // Abast màxim proporcional al percentatge
+        const maxReach = wi * MAX_REACH;
 
-        // microdust (55%)
-        const nDust = Math.round(nPoints * 0.55);
-        for (let j = 0; j < nDust; j++) {
-          const px = clx + p.randomGaussian(0, spread * 0.90);
-          const py = cly + p.randomGaussian(0, spread * 0.90);
-          const r = p.random(0.35, 1.25);
-          p.fill(...STAR_MID, p.random(62, 102));
-          p.circle(px, py, r * 3.4);
-          p.fill(...STAR_WHITE, p.random(236, 255));
-          p.circle(px, py, r * 1.06);
-        }
+        for (let j = 0; j < nPoints; j++) {
+          // Distància al llarg de l'eix (uniforme)
+          const t = p.random(0, maxReach);
+          // Spread perpendicular: gradual — ample al centre, prim a la punta
+          const spread = Math.max(2, MAX_SPREAD * Math.pow(1 - t / maxReach, 0.6));
+          const s = p.randomGaussian(0, spread);
 
-        // punts estructurals (30%)
-        const nStruct = Math.round(nPoints * 0.30);
-        for (let j = 0; j < nStruct; j++) {
-          const px = clx + p.randomGaussian(0, spread * 0.65);
-          const py = cly + p.randomGaussian(0, spread * 0.65);
-          const r = p.random(0.9, 2.8);
-          p.fill(...STAR_MID, p.random(72, 112));
-          p.circle(px, py, r * 4.9);
-          p.fill(...STAR_WHITE, p.random(242, 255));
-          p.circle(px, py, r * 1.12);
-        }
+          const px = Q_CX + ux * t + (-uy) * s;
+          const py = Q_CY + uy * t +   ux  * s;
 
-        // grafita (12%)
-        const nDark = Math.round(nPoints * 0.12);
-        for (let j = 0; j < nDark; j++) {
-          const px = clx + p.randomGaussian(0, spread * 0.50);
-          const py = cly + p.randomGaussian(0, spread * 0.50);
-          const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-          const r = p.random(0.9, 2.35);
-          p.fill(...darkColor, p.random(218, 255));
-          p.circle(px, py, r);
-        }
-
-        // anchors brillants (eixos > 12%)
-        if (wi > 0.12) {
-          const nAnchors = Math.max(1, Math.round(wi * 10));
-          for (let j = 0; j < nAnchors; j++) {
-            const px = clx + p.randomGaussian(0, spread * 0.30);
-            const py = cly + p.randomGaussian(0, spread * 0.30);
+          const type = p.random();
+          if (type < 0.55) {
+            // microdust
+            const r = p.random(0.35, 1.25);
+            p.fill(...STAR_MID, p.random(62, 102));
+            p.circle(px, py, r * 3.4);
+            p.fill(...STAR_WHITE, p.random(236, 255));
+            p.circle(px, py, r * 1.06);
+          } else if (type < 0.85) {
+            // punts estructurals
+            const r = p.random(0.9, 2.8);
+            p.fill(...STAR_MID, p.random(72, 112));
+            p.circle(px, py, r * 4.9);
+            p.fill(...STAR_WHITE, p.random(242, 255));
+            p.circle(px, py, r * 1.12);
+          } else if (type < 0.97) {
+            // grafita fosc
+            const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
+            const r = p.random(0.9, 2.35);
+            p.fill(...darkColor, p.random(218, 255));
+            p.circle(px, py, r);
+          } else {
+            // anchor brillant
             clusterStar(px, py, p.random(1.8, 3.7));
           }
         }
       });
 
-      // Densitat extra al nucli fix (centre dels eixos)
+      // Nucli fix sempre al centre dels eixos
       for (let j = 0; j < 90; j++) {
-        const px = Q_CX + p.randomGaussian(0, 28);
-        const py = Q_CY + p.randomGaussian(0, 28);
+        const px = Q_CX + p.randomGaussian(0, 22);
+        const py = Q_CY + p.randomGaussian(0, 22);
         const r = p.random(0.8, 2.8);
         if (p.random() > 0.38) {
           p.fill(...STAR_WHITE, p.random(232, 255));
@@ -291,7 +289,6 @@ function renderCard(profile, containerId, answers = {}) {
         }
       }
 
-      // Estrella central sempre al centre fix dels eixos
       brightStar(Q_CX, Q_CY, 18.5);
 
       p.pop();
