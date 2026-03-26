@@ -15,7 +15,7 @@ function renderCard(profile, containerId, answers = {}) {
     const MARGIN = 120;
 
     const SERIF = 'Cormorant Garamond';
-    // more faithful palette
+
     const BG = [250, 247, 245];
     const TEXT_DARK = [96, 88, 91];
     const TEXT_MAIN = [112, 103, 107];
@@ -24,7 +24,6 @@ function renderCard(profile, containerId, answers = {}) {
     const RULE = [220, 214, 216];
     const GRID = [223, 217, 219];
 
-    // wider and better occupied upper zone
     const Q_L = 150;
     const Q_R = 930;
     const Q_T = 172;
@@ -38,10 +37,9 @@ function renderCard(profile, containerId, answers = {}) {
     const DIV2_Y = 1042;
     const INFO_Y = 1094;
 
-    // bottom layout
     const COL_L = 120;
     const COL_MID = 520;
-    const COL_R   = 660;
+    const COL_R = 660;
     const COL_W_L = COL_MID - COL_L - 20;
     const COL_W_R = W - MARGIN - COL_R;
 
@@ -114,10 +112,10 @@ function renderCard(profile, containerId, answers = {}) {
 
     function drawHeader() {
       p.drawingContext.save();
-      p.drawingContext.font          = 'normal 22px "Helvetica Neue", Arial, sans-serif';
-      p.drawingContext.fillStyle     = `rgb(${TEXT_MAIN.join(',')})`;
-      p.drawingContext.textAlign     = 'center';
-      p.drawingContext.textBaseline  = 'middle';
+      p.drawingContext.font = 'normal 22px "Helvetica Neue", Arial, sans-serif';
+      p.drawingContext.fillStyle = `rgb(${TEXT_MAIN.join(',')})`;
+      p.drawingContext.textAlign = 'center';
+      p.drawingContext.textBaseline = 'middle';
       p.drawingContext.letterSpacing = '0.18em';
       p.drawingContext.fillText('UNTAB TRAVEL', W / 2, HEADER_Y);
       p.drawingContext.restore();
@@ -125,26 +123,40 @@ function renderCard(profile, containerId, answers = {}) {
 
     function drawGrid() {
       p.push();
+      p.noStroke();
 
-      p.stroke(...GRID, 90);
-      p.strokeWeight(0.55);
-      p.drawingContext.setLineDash([4, 10]);
-      p.line(Q_L, Q_CY, Q_R, Q_CY);
-      p.line(Q_CX, Q_T, Q_CX, Q_B);
+      // Pols molt subtils
+      const poles = [
+        [Q_CX, Q_T + 22],
+        [Q_CX, Q_B - 22],
+        [Q_L + 22, Q_CY],
+        [Q_R - 22, Q_CY],
+      ];
 
-      p.stroke(...GRID, 72);
-      p.line(Q_CX, Q_CY, Q_L + 132, Q_T + 132);
-      p.line(Q_CX, Q_CY, Q_R - 132, Q_T + 132);
-      p.line(Q_CX, Q_CY, Q_L + 132, Q_B - 132);
-      p.line(Q_CX, Q_CY, Q_R - 132, Q_B - 132);
+      poles.forEach(([mx, my]) => {
+        p.fill(...GRID, 42);
+        p.circle(mx, my, 1.7);
+      });
 
+      // Traços curts i quasi imperceptibles prop del centre
+      p.stroke(...GRID, 20);
+      p.strokeWeight(0.32);
+      p.drawingContext.setLineDash([2, 18]);
+      const cLen = 46;
+      p.line(Q_CX - cLen, Q_CY, Q_CX + cLen, Q_CY);
+      p.line(Q_CX, Q_CY - cLen, Q_CX, Q_CY + cLen);
       p.drawingContext.setLineDash([]);
 
-      p.stroke(218, 212, 214, 130);
-      p.strokeWeight(0.7);
-      const cs = 8;
-      p.line(Q_CX - cs, Q_CY, Q_CX + cs, Q_CY);
-      p.line(Q_CX, Q_CY - cs, Q_CX, Q_CY + cs);
+      // Diagonals ultra subtils
+      p.stroke(...GRID, 12);
+      p.strokeWeight(0.28);
+      const dLen = 74;
+      p.line(Q_CX - dLen, Q_CY - dLen, Q_CX + dLen, Q_CY + dLen);
+      p.line(Q_CX + dLen, Q_CY - dLen, Q_CX - dLen, Q_CY + dLen);
+
+      p.noStroke();
+      p.fill(...GRID, 44);
+      p.circle(Q_CX, Q_CY, 2.1);
 
       p.pop();
     }
@@ -156,7 +168,7 @@ function renderCard(profile, containerId, answers = {}) {
 
         const x = isRight ? cx - 2 : cx + 2;
         const nameY = isBottom ? cy - 8 : cy + 68;
-        const pctY = nameY + 37; // more top/bottom breathing
+        const pctY = nameY + 37;
 
         p.noStroke();
         p.textAlign(isRight ? p.RIGHT : p.LEFT);
@@ -178,167 +190,197 @@ function renderCard(profile, containerId, answers = {}) {
     }
 
     function drawNebula() {
-      const domCorner = CORNERS[dominantAxis];
-      const oppCorner = CORNERS[OPPOSITE[dominantAxis]];
+  const domVal = axes[dominantAxis] || 25;
+  const secVal = axes[secondaryAxis] || 20;
 
-      const dx = domCorner[0] - oppCorner[0];
-      const dy = domCorner[1] - oppCorner[1];
-      const angle = Math.atan2(dy, dx);
-      const diag = Math.sqrt(dx * dx + dy * dy);
+  const domCorner = CORNERS[dominantAxis];
+  const oppCorner = CORNERS[OPPOSITE[dominantAxis]];
+  const secCorner = CORNERS[secondaryAxis];
 
-      const domWeight = (axes[dominantAxis] || 25) / 100;
-      const secWeight = (axes[secondaryAxis] || 20) / 100;
+  const dirX = domCorner[0] - oppCorner[0];
+  const dirY = domCorner[1] - oppCorner[1];
+  const angle = Math.atan2(dirY, dirX);
+  const diag = Math.sqrt(dirX * dirX + dirY * dirY);
 
-      const nLen = diag * 0.58;
-      const shift = 0.08 + domWeight * 0.08;
+  const domPull = 0.10 + (domVal / 100) * 0.10;
+  const ncx = Q_CX + (domCorner[0] - Q_CX) * domPull;
+  const ncy = Q_CY + (domCorner[1] - Q_CY) * domPull;
 
-      const ncx = Q_CX + (domCorner[0] - Q_CX) * shift;
-      const ncy = Q_CY + (domCorner[1] - Q_CY) * shift;
+  const secVecX = secCorner[0] - Q_CX;
+  const secVecY = secCorner[1] - Q_CY;
+  const perp = -Math.sin(angle) * secVecX + Math.cos(angle) * secVecY;
+  const secSign = perp >= 0 ? 1 : -1;
+  const secInfluence = (secVal / 100) * 0.55;
 
-      const spreadBoost = 1 + secWeight * 0.65;
-      const densityBoost = 1 + domWeight * 0.78;
+  const nLen = diag * 0.88;
+  const halfLen = nLen * 0.5;
 
-      p.push();
-      p.translate(ncx, ncy);
-      p.rotate(angle);
-      p.noStroke();
+  p.push();
+  p.translate(ncx, ncy);
+  p.rotate(angle);
+  p.noStroke();
 
-      // 1. deep gray atmospheric base
-      for (let i = 0; i < Math.round(120 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.52, nLen * 0.38);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.52));
-        const spread = p.random(18, 82) * decay * spreadBoost;
+  const getSpread = (t) => {
+    const norm = Math.min(1, Math.abs(t) / halfLen);
+    const taper = Math.pow(1 - norm, 0.55);
+    return 8 + taper * 76;
+  };
 
-        const gray = p.random(198, 224);
-        p.fill(gray, gray, gray, p.random(8, 22));
-        p.ellipse(
-          t,
-          p.random(-spread, spread),
-          p.random(55, 165) * decay,
-          p.random(24, 92) * decay
-        );
-      }
+  const getCurveY = (t) => {
+    const n = t / halfLen;
+    return secSign * Math.sin(n * Math.PI * 0.9) * (16 + secInfluence * 28);
+  };
 
-      // 2. white soft glow layer
-      for (let i = 0; i < Math.round(100 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.48, nLen * 0.32);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.48));
-        const spread = p.random(10, 52) * decay * spreadBoost;
+  // 1. Base subtil però més visible
+  for (let i = 0; i < 24; i++) {
+    const t = p.random(-halfLen * 0.55, halfLen * 0.42);
+    const spread = getSpread(t) * 0.42;
+    const cy = getCurveY(t);
 
-        p.fill(255, 255, 255, p.random(10, 30));
-        p.ellipse(
-          t,
-          p.random(-spread, spread),
-          p.random(36, 118) * decay,
-          p.random(18, 62) * decay
-        );
-      }
+    const g = p.random(150, 182);
+    p.fill(g, g, g, p.random(14, 24));
 
-      // 3. denser inner mass
-      for (let i = 0; i < Math.round(56 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.30, nLen * 0.22);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.30));
-        const spread = p.random(4, 24) * decay;
+    p.ellipse(
+      t,
+      cy + p.random(-spread, spread),
+      p.random(26, 78),
+      p.random(10, 24)
+    );
+  }
 
-        const gray = p.random(188, 214);
-        p.fill(gray, gray, gray, p.random(14, 30));
-        p.ellipse(
-          t,
-          p.random(-spread, spread),
-          p.random(28, 88) * decay,
-          p.random(14, 40) * decay
-        );
-      }
+  // 2. Microdust principal — MOLTS més punts
+  for (let i = 0; i < 420; i++) {
+    const t = p.random(-halfLen * 1.06, halfLen * 0.92);
+    const spread = getSpread(t) * 0.72;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
 
-      // 4. star dust and points
-      for (let i = 0; i < Math.round(185 * densityBoost); i++) {
-        const t = p.random(-nLen * 0.54, nLen * 0.36);
-        const decay = Math.max(0, 1 - Math.abs(t) / (nLen * 0.54));
-        const spread = p.random(0, 42) * decay * spreadBoost;
+    const r = p.random(0.45, 1.45);
+    const soft = p.random(180, 220);
+    const core = p.random(246, 255);
 
-        const px = t;
-        const py = p.random(-spread, spread);
-        const r = p.random(0.7, 4.4);
-        const bright = 0.42 + decay * 0.92;
+    p.fill(soft, soft, soft, p.random(40, 78));
+    p.circle(t, y, r * 3.8);
 
-        const g1 = p.random(214, 238);
-        p.fill(g1, g1, g1, p.random(24, 60) * bright);
-        p.circle(px, py, r * 6.2);
+    p.fill(core, core, core, p.random(225, 255));
+    p.circle(t, y, r);
+  }
 
-        p.fill(255, 255, 255, p.random(90, 175) * bright);
-        p.circle(px, py, r * 2.4);
+  // 3. Punts estructurals — més quantitat i més contrast
+  for (let i = 0; i < 150; i++) {
+    const t = p.random(-halfLen * 1.0, halfLen * 0.82);
+    const spread = getSpread(t) * 0.62;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
 
-        const g2 = p.random(236, 255);
-        p.fill(g2, g2, g2, p.random(180, 255));
-        p.circle(px, py, r);
-      }
+    const r = p.random(1.0, 3.1);
 
-      // 5. brighter clusters
-      for (let i = 0; i < 18; i++) {
-        const t = p.random(-nLen * 0.42, nLen * 0.24);
-        const py = p.random(-14, 14);
-        clusterStar(t, py, p.random(1.8, 4.6));
-      }
+    p.fill(214, 214, 214, p.random(38, 72));
+    p.circle(t, y, r * 4.4);
 
-      // 6. central luminous fog
-      for (let i = 0; i < 12; i++) {
-        p.fill(255, 255, 255, p.random(10, 24));
-        p.ellipse(
-          p.random(-35, 20),
-          p.random(-18, 18),
-          p.random(90, 180),
-          p.random(36, 80)
-        );
-      }
+    p.fill(252, 252, 252, p.random(232, 255));
+    p.circle(t, y, r);
+  }
 
-      brightStar(-nLen * 0.04, 0, 15 + domWeight * 4.5);
+  // 4. Punts grafit — clau per donar caràcter
+  for (let i = 0; i < 58; i++) {
+    const t = p.random(-halfLen * 0.98, halfLen * 0.88);
+    const spread = getSpread(t) * 0.82;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
 
-      p.pop();
-    }
+    const g = p.random(58, 104);
+    const r = p.random(0.9, 2.2);
+
+    p.fill(g, g, g, p.random(185, 245));
+    p.circle(t, y, r);
+  }
+
+  // 5. Anchors brillants — una mica més presents
+  for (let i = 0; i < 18; i++) {
+    const t = p.random(-halfLen * 0.66, halfLen * 0.54);
+    const spread = getSpread(t) * 0.38;
+    const cy = getCurveY(t);
+    clusterStar(t, cy + p.random(-spread, spread), p.random(1.7, 3.5));
+  }
+
+  // 6. Núvol lateral de micro punts per cos central
+  for (let i = 0; i < 84; i++) {
+    const t = p.random(-halfLen * 0.24, halfLen * 0.20);
+    const spread = getSpread(t) * 0.98;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
+
+    const g = p.random(164, 205);
+    const r = p.random(0.7, 2.0);
+
+    p.fill(g, g, g, p.random(44, 88));
+    p.circle(t, y, r);
+  }
+
+  // 7. Pocs punts perifèrics grans i lluminosos
+  for (let i = 0; i < 16; i++) {
+    const t = p.random(-halfLen * 0.44, halfLen * 0.36);
+    const spread = getSpread(t) * 0.9;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
+
+    const r = p.random(2.0, 4.8);
+
+    p.fill(255, 255, 255, p.random(50, 88));
+    p.circle(t, y, r * 3.8);
+
+    p.fill(252, 252, 252, p.random(235, 255));
+    p.circle(t, y, r);
+  }
+
+  // 8. Focus central clar i potent
+  brightStar(0, getCurveY(0) * 0.25, 17.5);
+
+  p.pop();
+}
 
     function clusterStar(x, y, s) {
-      p.noStroke();
+  p.noStroke();
 
-      p.fill(255, 255, 255, 16);
-      p.circle(x, y, s * 18);
+  p.fill(255, 255, 255, 42);
+  p.circle(x, y, s * 10);
 
-      p.fill(242, 242, 242, 42);
-      p.circle(x, y, s * 10);
+  p.fill(212, 212, 212, 118);
+  p.circle(x, y, s * 5.2);
 
-      p.fill(255, 255, 255, 105);
-      p.circle(x, y, s * 4.4);
+  p.fill(255, 255, 255, 248);
+  p.circle(x, y, s * 2.0);
 
-      p.fill(255, 255, 255, 250);
-      p.circle(x, y, s * 1.25);
-    }
+  p.fill(255, 255, 255, 255);
+  p.circle(x, y, s * 0.95);
+}
+   function brightStar(x, y, s) {
+  [
+    [s * 20, 12],
+    [s * 12, 28],
+    [s * 7.0, 70],
+    [s * 3.4, 145]
+  ].forEach(([r, a]) => {
+    p.noStroke();
+    p.fill(255, 255, 255, a);
+    p.circle(x, y, r);
+  });
 
-    function brightStar(x, y, s) {
-      [
-        [s * 34, 4],
-        [s * 24, 8],
-        [s * 16, 18],
-        [s * 10, 36],
-        [s * 5, 86]
-      ].forEach(([r, a]) => {
-        p.noStroke();
-        p.fill(255, 255, 255, a);
-        p.circle(x, y, r);
-      });
+  p.stroke(255, 255, 255, 185);
+  p.strokeWeight(1.15);
+  p.line(x - s * 8.5, y, x + s * 8.5, y);
+  p.line(x, y - s * 8.5, x, y + s * 8.5);
 
-      p.stroke(255, 255, 255, 158);
-      p.strokeWeight(1.2);
-      p.line(x - s * 16, y, x + s * 16, y);
-      p.line(x, y - s * 16, x, y + s * 16);
+  p.stroke(188, 188, 188, 110);
+  p.strokeWeight(0.78);
+  p.line(x - s * 5.0, y - s * 5.0, x + s * 5.0, y + s * 5.0);
+  p.line(x + s * 5.0, y - s * 5.0, x - s * 5.0, y + s * 5.0);
 
-      p.stroke(246, 246, 246, 80);
-      p.strokeWeight(0.8);
-      p.line(x - s * 9, y - s * 9, x + s * 9, y + s * 9);
-      p.line(x + s * 9, y - s * 9, x - s * 9, y + s * 9);
-
-      p.noStroke();
-      p.fill(255, 255, 255, 255);
-      p.circle(x, y, s * 1.52);
-    }
+  p.noStroke();
+  p.fill(255, 255, 255, 255);
+  p.circle(x, y, s * 1.02);
+}
 
     function hRule(x1, y, x2, alpha = 0.5) {
       p.push();
@@ -381,7 +423,7 @@ function renderCard(profile, containerId, answers = {}) {
     function infoLabel(txt, x, y, lineEndX) {
       p.noStroke();
       p.fill(...TEXT_LIGHT, 238);
-      p.textFont(SERIF); // same visual family for all
+      p.textFont(SERIF);
       p.textStyle(p.NORMAL);
       p.textSize(17);
       p.textAlign(p.LEFT);
@@ -452,7 +494,6 @@ function renderCard(profile, containerId, answers = {}) {
       if (!txt || txt === '—' || txt === '-') return '';
       return txt;
     }
-
 
     function trackedTextLeft(str, x, y, spacing) {
       let cx = x;
