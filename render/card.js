@@ -197,22 +197,26 @@ function renderCard(profile, containerId, answers = {}) {
   const oppCorner = CORNERS[OPPOSITE[dominantAxis]];
   const secCorner = CORNERS[secondaryAxis];
 
+  // Direcció principal = eix dominant
   const dirX = domCorner[0] - oppCorner[0];
   const dirY = domCorner[1] - oppCorner[1];
   const angle = Math.atan2(dirY, dirX);
   const diag = Math.sqrt(dirX * dirX + dirY * dirY);
 
-  const domPull = 0.10 + (domVal / 100) * 0.10;
+  // Centre lleugerament desplaçat cap al dominant
+  const domPull = 0.08 + (domVal / 100) * 0.08;
   const ncx = Q_CX + (domCorner[0] - Q_CX) * domPull;
   const ncy = Q_CY + (domCorner[1] - Q_CY) * domPull;
 
+  // Obertura lateral guiada pel secundari
   const secVecX = secCorner[0] - Q_CX;
   const secVecY = secCorner[1] - Q_CY;
   const perp = -Math.sin(angle) * secVecX + Math.cos(angle) * secVecY;
   const secSign = perp >= 0 ? 1 : -1;
-  const secInfluence = (secVal / 100) * 0.55;
+  const secInfluence = (secVal / 100) * 0.48;
 
-  const nLen = diag * 0.88;
+  // una mica més curta perquè no arribi tan lluny a les cantonades
+  const nLen = diag * 0.72;
   const halfLen = nLen * 0.5;
 
   p.push();
@@ -220,136 +224,155 @@ function renderCard(profile, containerId, answers = {}) {
   p.rotate(angle);
   p.noStroke();
 
+  // Amplada: molt ampla al centre, fina a les puntes
   const getSpread = (t) => {
     const norm = Math.min(1, Math.abs(t) / halfLen);
-    const taper = Math.pow(1 - norm, 0.55);
-    return 8 + taper * 76;
+    const taper = Math.pow(1 - norm, 0.42);
+    return 4 + taper * 92;
   };
 
   const getCurveY = (t) => {
     const n = t / halfLen;
-    return secSign * Math.sin(n * Math.PI * 0.9) * (16 + secInfluence * 28);
+    return secSign * Math.sin(n * Math.PI * 0.86) * (12 + secInfluence * 18);
   };
 
-  // 1. Base subtil però més visible
-  for (let i = 0; i < 24; i++) {
-    const t = p.random(-halfLen * 0.55, halfLen * 0.42);
-    const spread = getSpread(t) * 0.42;
+  // =========================
+  // 1. Base molt subtil però visible
+  // =========================
+  for (let i = 0; i < 18; i++) {
+    const t = p.random(-halfLen * 0.46, halfLen * 0.34);
+    const spread = getSpread(t) * 0.34;
     const cy = getCurveY(t);
 
-    const g = p.random(150, 182);
-    p.fill(g, g, g, p.random(14, 24));
+    const g = p.random(145, 176);
+    p.fill(g, g, g, p.random(12, 20));
 
     p.ellipse(
       t,
       cy + p.random(-spread, spread),
-      p.random(26, 78),
-      p.random(10, 24)
+      p.random(20, 58),
+      p.random(8, 18)
     );
   }
 
-  // 2. Microdust principal — MOLTS més punts
-  for (let i = 0; i < 420; i++) {
-    const t = p.random(-halfLen * 1.06, halfLen * 0.92);
+  // =========================
+  // 2. Microdust principal — més punts
+  // =========================
+  for (let i = 0; i < 520; i++) {
+    const t = p.random(-halfLen * 0.96, halfLen * 0.82);
     const spread = getSpread(t) * 0.72;
     const cy = getCurveY(t);
     const y = cy + p.random(-spread, spread);
 
-    const r = p.random(0.45, 1.45);
-    const soft = p.random(180, 220);
+    const r = p.random(0.35, 1.25);
+    const soft = p.random(176, 214);
     const core = p.random(246, 255);
 
-    p.fill(soft, soft, soft, p.random(40, 78));
-    p.circle(t, y, r * 3.8);
+    p.fill(soft, soft, soft, p.random(42, 78));
+    p.circle(t, y, r * 3.2);
 
     p.fill(core, core, core, p.random(225, 255));
     p.circle(t, y, r);
   }
 
-  // 3. Punts estructurals — més quantitat i més contrast
-  for (let i = 0; i < 150; i++) {
-    const t = p.random(-halfLen * 1.0, halfLen * 0.82);
-    const spread = getSpread(t) * 0.62;
+  // =========================
+  // 3. Punts estructurals
+  // =========================
+  for (let i = 0; i < 190; i++) {
+    const t = p.random(-halfLen * 0.90, halfLen * 0.76);
+    const spread = getSpread(t) * 0.56;
     const cy = getCurveY(t);
     const y = cy + p.random(-spread, spread);
 
-    const r = p.random(1.0, 3.1);
+    const r = p.random(0.9, 2.8);
 
-    p.fill(214, 214, 214, p.random(38, 72));
-    p.circle(t, y, r * 4.4);
-
-    p.fill(252, 252, 252, p.random(232, 255));
-    p.circle(t, y, r);
-  }
-
-  // 4. Punts grafit — clau per donar caràcter
-  for (let i = 0; i < 58; i++) {
-    const t = p.random(-halfLen * 0.98, halfLen * 0.88);
-    const spread = getSpread(t) * 0.82;
-    const cy = getCurveY(t);
-    const y = cy + p.random(-spread, spread);
-
-    const g = p.random(58, 104);
-    const r = p.random(0.9, 2.2);
-
-    p.fill(g, g, g, p.random(185, 245));
-    p.circle(t, y, r);
-  }
-
-  // 5. Anchors brillants — una mica més presents
-  for (let i = 0; i < 18; i++) {
-    const t = p.random(-halfLen * 0.66, halfLen * 0.54);
-    const spread = getSpread(t) * 0.38;
-    const cy = getCurveY(t);
-    clusterStar(t, cy + p.random(-spread, spread), p.random(1.7, 3.5));
-  }
-
-  // 6. Núvol lateral de micro punts per cos central
-  for (let i = 0; i < 84; i++) {
-    const t = p.random(-halfLen * 0.24, halfLen * 0.20);
-    const spread = getSpread(t) * 0.98;
-    const cy = getCurveY(t);
-    const y = cy + p.random(-spread, spread);
-
-    const g = p.random(164, 205);
-    const r = p.random(0.7, 2.0);
-
-    p.fill(g, g, g, p.random(44, 88));
-    p.circle(t, y, r);
-  }
-
-  // 7. Pocs punts perifèrics grans i lluminosos
-  for (let i = 0; i < 16; i++) {
-    const t = p.random(-halfLen * 0.44, halfLen * 0.36);
-    const spread = getSpread(t) * 0.9;
-    const cy = getCurveY(t);
-    const y = cy + p.random(-spread, spread);
-
-    const r = p.random(2.0, 4.8);
-
-    p.fill(255, 255, 255, p.random(50, 88));
-    p.circle(t, y, r * 3.8);
+    p.fill(210, 210, 210, p.random(42, 78));
+    p.circle(t, y, r * 4.0);
 
     p.fill(252, 252, 252, p.random(235, 255));
     p.circle(t, y, r);
   }
 
-  // 8. Focus central clar i potent
-  brightStar(0, getCurveY(0) * 0.25, 17.5);
+  // =========================
+  // 4. Punts grafit — més presència
+  // =========================
+  for (let i = 0; i < 92; i++) {
+    const t = p.random(-halfLen * 0.86, halfLen * 0.74);
+    const spread = getSpread(t) * 0.70;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
+
+    const g = p.random(42, 88);
+    const r = p.random(0.7, 1.9);
+
+    p.fill(g, g, g, p.random(195, 255));
+    p.circle(t, y, r);
+  }
+
+  // =========================
+  // 5. Anchors brillants
+  // =========================
+  for (let i = 0; i < 22; i++) {
+    const t = p.random(-halfLen * 0.54, halfLen * 0.42);
+    const spread = getSpread(t) * 0.30;
+    const cy = getCurveY(t);
+    clusterStar(t, cy + p.random(-spread, spread), p.random(1.4, 3.1));
+  }
+
+  // =========================
+  // 6. Densitat central extra
+  // =========================
+  for (let i = 0; i < 180; i++) {
+    const t = p.random(-halfLen * 0.22, halfLen * 0.18);
+    const spread = getSpread(t) * 0.95;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
+
+    const r = p.random(0.45, 1.6);
+    const g = p.random(170, 210);
+
+    p.fill(g, g, g, p.random(46, 90));
+    p.circle(t, y, r * 2.6);
+
+    p.fill(252, 252, 252, p.random(220, 255));
+    p.circle(t, y, r * 0.9);
+  }
+
+  // =========================
+  // 7. Punts perifèrics grans al centre
+  // =========================
+  for (let i = 0; i < 24; i++) {
+    const t = p.random(-halfLen * 0.28, halfLen * 0.24);
+    const spread = getSpread(t) * 0.78;
+    const cy = getCurveY(t);
+    const y = cy + p.random(-spread, spread);
+
+    const r = p.random(1.8, 4.4);
+
+    p.fill(255, 255, 255, p.random(56, 94));
+    p.circle(t, y, r * 3.5);
+
+    p.fill(252, 252, 252, p.random(235, 255));
+    p.circle(t, y, r);
+  }
+
+  // =========================
+  // 8. Focus central més visible
+  // =========================
+  brightStar(0, getCurveY(0) * 0.18, 18.5);
 
   p.pop();
 }
-
-    function clusterStar(x, y, s) {
+   function clusterStar(x, y, s) {
   p.noStroke();
 
-  p.fill(255, 255, 255, 42);
+  p.fill(255, 255, 255, 48);
   p.circle(x, y, s * 10);
 
-  p.fill(212, 212, 212, 118);
-  p.circle(x, y, s * 5.2);
+  p.fill(205, 205, 205, 132);
+  p.circle(x, y, s * 5.1);
 
-  p.fill(255, 255, 255, 248);
+  p.fill(255, 255, 255, 250);
   p.circle(x, y, s * 2.0);
 
   p.fill(255, 255, 255, 255);
@@ -357,29 +380,29 @@ function renderCard(profile, containerId, answers = {}) {
 }
    function brightStar(x, y, s) {
   [
-    [s * 20, 12],
-    [s * 12, 28],
-    [s * 7.0, 70],
-    [s * 3.4, 145]
+    [s * 22, 16],
+    [s * 13, 36],
+    [s * 7.4, 88],
+    [s * 3.6, 165]
   ].forEach(([r, a]) => {
     p.noStroke();
     p.fill(255, 255, 255, a);
     p.circle(x, y, r);
   });
 
-  p.stroke(255, 255, 255, 185);
-  p.strokeWeight(1.15);
-  p.line(x - s * 8.5, y, x + s * 8.5, y);
-  p.line(x, y - s * 8.5, x, y + s * 8.5);
+  p.stroke(255, 255, 255, 205);
+  p.strokeWeight(1.2);
+  p.line(x - s * 8.8, y, x + s * 8.8, y);
+  p.line(x, y - s * 8.8, x, y + s * 8.8);
 
-  p.stroke(188, 188, 188, 110);
-  p.strokeWeight(0.78);
-  p.line(x - s * 5.0, y - s * 5.0, x + s * 5.0, y + s * 5.0);
-  p.line(x + s * 5.0, y - s * 5.0, x - s * 5.0, y + s * 5.0);
+  p.stroke(182, 182, 182, 125);
+  p.strokeWeight(0.85);
+  p.line(x - s * 5.2, y - s * 5.2, x + s * 5.2, y + s * 5.2);
+  p.line(x + s * 5.2, y - s * 5.2, x - s * 5.2, y + s * 5.2);
 
   p.noStroke();
   p.fill(255, 255, 255, 255);
-  p.circle(x, y, s * 1.02);
+  p.circle(x, y, s * 1.04);
 }
 
     function hRule(x1, y, x2, alpha = 0.5) {
