@@ -70,13 +70,6 @@ function renderCard(profile, containerId, answers = {}) {
       calma: 'Calma',
     };
 
-    const OPPOSITE = {
-      exploracion: 'calma',
-      cultura: 'placer',
-      placer: 'cultura',
-      calma: 'exploracion',
-    };
-
     const seed = Array.from(profile?.name || 'x').reduce((s, c) => s + c.charCodeAt(0), 42);
     const axes = normalizeAxes(profile?.normalizedAxes || {});
     const dominantAxis = getDominantAxis(axes, profile?.dominantAxis);
@@ -215,22 +208,31 @@ function renderCard(profile, containerId, answers = {}) {
     }
 
     function drawNebula() {
-      const domVal = axes[dominantAxis] || 25;
+      // --- Vector de gravetat ponderat (pesos al quadrat per amplificar diferències) ---
+      const axisNames = ['exploracion', 'cultura', 'placer', 'calma'];
+      const sq = axisNames.map(a => Math.pow(axes[a] || 0, 2));
+      const sqSum = sq.reduce((a, b) => a + b, 0) || 1;
+      const w = sq.map(s => s / sqSum);
+
+      let gx = 0, gy = 0;
+      axisNames.forEach((a, i) => {
+        gx += w[i] * (CORNERS[a][0] - Q_CX);
+        gy += w[i] * (CORNERS[a][1] - Q_CY);
+      });
+
+      const gMag = Math.sqrt(gx * gx + gy * gy);
+      const angle = gMag > 1 ? Math.atan2(gy, gx) : 0;
+
+      // Diagonal completa com a referència de longitud
+      const diag = Math.sqrt(Math.pow(Q_R - Q_L, 2) + Math.pow(Q_B - Q_T, 2));
+
+      // Centre de la nebulosa: desplaçat cap al vector de gravetat
+      const ncx = Q_CX + gx * 0.65;
+      const ncy = Q_CY + gy * 0.65;
+
+      // Corba secundària: l'eix secundari determina el costat de la corba
       const secVal = axes[secondaryAxis] || 20;
-
-      const domCorner = CORNERS[dominantAxis];
-      const oppCorner = CORNERS[OPPOSITE[dominantAxis]];
       const secCorner = CORNERS[secondaryAxis];
-
-      const dirX = domCorner[0] - oppCorner[0];
-      const dirY = domCorner[1] - oppCorner[1];
-      const angle = Math.atan2(dirY, dirX);
-      const diag = Math.sqrt(dirX * dirX + dirY * dirY);
-
-      const domPull = 0.08 + (domVal / 100) * 0.08;
-      const ncx = Q_CX + (domCorner[0] - Q_CX) * domPull;
-      const ncy = Q_CY + (domCorner[1] - Q_CY) * domPull;
-
       const secVecX = secCorner[0] - Q_CX;
       const secVecY = secCorner[1] - Q_CY;
       const perp = -Math.sin(angle) * secVecX + Math.cos(angle) * secVecY;
