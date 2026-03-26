@@ -37,11 +37,19 @@ function renderCard(profile, containerId, answers = {}) {
     const DIV2_Y = 1042;
     const INFO_Y = 1094;
 
-    const COL_L = 120;
-    const COL_MID = 520;
-    const COL_R = 660;
-    const COL_W_L = COL_MID - COL_L - 20;
-    const COL_W_R = W - MARGIN - COL_R;
+    const INFO_LEFT = MARGIN;
+const INFO_RIGHT = W - MARGIN;
+const INFO_CENTER = W / 2;
+
+const INFO_GAP = 44; // espai total entre les dues columnes
+const COL_W = (INFO_RIGHT - INFO_LEFT - INFO_GAP) / 2;
+
+const COL_L = INFO_LEFT;
+const COL_R = INFO_CENTER + INFO_GAP / 2;
+const COL_MID = INFO_CENTER;
+
+const COL_W_L = COL_W;
+const COL_W_R = COL_W;
 
     const CORNERS = {
       exploracion: [Q_L, Q_T],
@@ -142,7 +150,7 @@ function renderCard(profile, containerId, answers = {}) {
       p.stroke(...GRID, 20);
       p.strokeWeight(0.32);
       p.drawingContext.setLineDash([2, 18]);
-      const cLen = 46;
+      const cLen = 34;
       p.line(Q_CX - cLen, Q_CY, Q_CX + cLen, Q_CY);
       p.line(Q_CX, Q_CY - cLen, Q_CX, Q_CY + cLen);
       p.drawingContext.setLineDash([]);
@@ -150,13 +158,13 @@ function renderCard(profile, containerId, answers = {}) {
       // Diagonals ultra subtils
       p.stroke(...GRID, 12);
       p.strokeWeight(0.28);
-      const dLen = 74;
+      const dLen = 54;
       p.line(Q_CX - dLen, Q_CY - dLen, Q_CX + dLen, Q_CY + dLen);
       p.line(Q_CX + dLen, Q_CY - dLen, Q_CX - dLen, Q_CY + dLen);
 
       p.noStroke();
-      p.fill(...GRID, 44);
-      p.circle(Q_CX, Q_CY, 2.1);
+      p.fill(...GRID, 30);
+      p.circle(Q_CX, Q_CY, 1.6);
 
       p.pop();
     }
@@ -228,37 +236,37 @@ function renderCard(profile, containerId, answers = {}) {
   const getSpread = (t) => {
     const norm = Math.min(1, Math.abs(t) / halfLen);
     const taper = Math.pow(1 - norm, 0.42);
-    return 4 + taper * 92;
+    return 3 + taper * 62;
   };
 
   const getCurveY = (t) => {
     const n = t / halfLen;
-    return secSign * Math.sin(n * Math.PI * 0.86) * (12 + secInfluence * 18);
+    return secSign * Math.sin(n * Math.PI * 0.82) * (8 + secInfluence * 12);
   };
 
   // =========================
-  // 1. Base molt subtil però visible
-  // =========================
-  for (let i = 0; i < 18; i++) {
-    const t = p.random(-halfLen * 0.46, halfLen * 0.34);
-    const spread = getSpread(t) * 0.34;
-    const cy = getCurveY(t);
+// 1. Base molt subtil però visible
+// =========================
+for (let i = 0; i < 18; i++) {
+  const t = p.random(-halfLen * 0.46, halfLen * 0.34);
+  const spread = getSpread(t) * 0.34;
+  const cy = getCurveY(t);
 
-    const g = p.random(145, 176);
-    p.fill(g, g, g, p.random(12, 20));
+  const g = p.random(145, 176);
+  p.fill(g, g, g, p.random(12, 20));
 
-    p.ellipse(
-      t,
-      cy + p.random(-spread, spread),
-      p.random(20, 58),
-      p.random(8, 18)
-    );
-  }
+  p.ellipse(
+    t,
+    cy + p.random(-spread, spread),
+    p.random(20, 58),
+    p.random(8, 18)
+  );
+}
 
   // =========================
   // 2. Microdust principal — més punts
   // =========================
-  for (let i = 0; i < 520; i++) {
+  for (let i = 0; i < 280; i++) {
     const t = p.random(-halfLen * 0.96, halfLen * 0.82);
     const spread = getSpread(t) * 0.72;
     const cy = getCurveY(t);
@@ -278,7 +286,7 @@ function renderCard(profile, containerId, answers = {}) {
   // =========================
   // 3. Punts estructurals
   // =========================
-  for (let i = 0; i < 190; i++) {
+  for (let i = 0; i < 110; i++) {
     const t = p.random(-halfLen * 0.90, halfLen * 0.76);
     const spread = getSpread(t) * 0.56;
     const cy = getCurveY(t);
@@ -296,7 +304,7 @@ function renderCard(profile, containerId, answers = {}) {
   // =========================
   // 4. Punts grafit — més presència
   // =========================
-  for (let i = 0; i < 92; i++) {
+  for (let i = 0; i < 58; i++) {
     const t = p.random(-halfLen * 0.86, halfLen * 0.74);
     const spread = getSpread(t) * 0.70;
     const cy = getCurveY(t);
@@ -322,7 +330,7 @@ function renderCard(profile, containerId, answers = {}) {
   // =========================
   // 6. Densitat central extra
   // =========================
-  for (let i = 0; i < 180; i++) {
+  for (let i = 0; i < 90; i++) {
     const t = p.random(-halfLen * 0.22, halfLen * 0.18);
     const spread = getSpread(t) * 0.95;
     const cy = getCurveY(t);
@@ -341,7 +349,7 @@ function renderCard(profile, containerId, answers = {}) {
   // =========================
   // 7. Punts perifèrics grans al centre
   // =========================
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < 12; i++) {
     const t = p.random(-halfLen * 0.28, halfLen * 0.24);
     const spread = getSpread(t) * 0.78;
     const cy = getCurveY(t);
@@ -414,34 +422,105 @@ function renderCard(profile, containerId, answers = {}) {
     }
 
     function drawName() {
-      p.noStroke();
-      p.fill(...TEXT_MAIN, 244);
-      p.textFont(SERIF);
-      p.textStyle(p.NORMAL);
-      p.textSize(54);
-      p.textAlign(p.LEFT);
-      p.text(profile?.name || 'Viajero', MARGIN, NAME_Y);
-    }
+  p.noStroke();
+  p.fill(...TEXT_MAIN, 236);
+  p.textFont(SERIF);
+  p.textStyle(p.NORMAL);
+  p.textSize(42);
+  p.textAlign(p.CENTER);
+  p.text(profile?.name || 'Viajero', W / 2, NAME_Y);
+}
 
     function drawInfoBlock() {
-      p.push();
-      p.drawingContext.setLineDash([2, 7]);
-      p.stroke(...RULE, 165);
-      p.strokeWeight(0.6);
-      p.line(COL_MID, INFO_Y - 2, COL_MID, INFO_Y + 258);
-      p.drawingContext.setLineDash([]);
-      p.pop();
+  p.push();
+  p.drawingContext.setLineDash([2, 7]);
+  p.stroke(...RULE, 150);
+  p.strokeWeight(0.6);
+  p.line(COL_MID, INFO_Y + 10, COL_MID, INFO_Y + 258);
+  p.drawingContext.setLineDash([]);
+  p.pop();
 
-      infoLabel('MICRO ADN', COL_L, INFO_Y, COL_MID - 16);
-      infoText(profile?.microADN || '—', COL_L, INFO_Y + 28, COL_W_L, 112, 22, 26);
+  const leftCenter = COL_L + COL_W_L / 2;
+  const rightCenter = COL_R + COL_W_R / 2;
 
-      infoLabel('TRIBU VIAJERA', COL_R, INFO_Y, W - MARGIN);
-      infoText(profile?.tribe || '—', COL_R, INFO_Y + 28, COL_W_R, 80, 22, 26);
+  infoLabelCentered('MICRO ADN', leftCenter, INFO_Y, COL_W_L);
+  infoTextCentered(profile?.microADN || '—', leftCenter, INFO_Y + 44, COL_W_L, 120, 22, 28);
 
-      const DEST_Y = INFO_Y + 96;
-      infoLabel('DESTINO', COL_R, DEST_Y, W - MARGIN);
-      infoText(destination || '—', COL_R, DEST_Y + 28, COL_W_R, 80, 22, 26);
-    }
+  infoLabelCentered('TRIBU VIAJERA', rightCenter, INFO_Y, COL_W_R);
+  infoTextCentered(profile?.tribe || '—', rightCenter, INFO_Y + 44, COL_W_R, 80, 22, 28);
+
+  const DEST_Y = INFO_Y + 116;
+  infoLabelCentered('DESTINO', rightCenter, DEST_Y, COL_W_R);
+  infoTextCentered(destination || '—', rightCenter, DEST_Y + 44, COL_W_R, 70, 22, 28);
+}
+
+function infoLabelCentered(txt, cx, y, colWidth) {
+  p.noStroke();
+  p.fill(...TEXT_LIGHT, 234);
+  p.textFont(SERIF);
+  p.textStyle(p.NORMAL);
+  p.textSize(17);
+  p.textAlign(p.CENTER);
+
+  const txtW = trackedTextWidth(txt, 2.1);
+  const startX = cx - txtW / 2;
+  const endX = cx + txtW / 2;
+
+  trackedTextCentered(txt, cx, y, 2.1);
+
+  const sidePadding = 14;
+  const lineLeft = cx - colWidth / 2;
+  const lineRight = cx + colWidth / 2;
+
+  p.push();
+  p.drawingContext.setLineDash([1, 5]);
+  p.stroke(...RULE, 170);
+  p.strokeWeight(0.55);
+
+  if (startX - sidePadding > lineLeft) {
+    p.line(lineLeft, y - 4, startX - sidePadding, y - 4);
+  }
+
+  if (endX + sidePadding < lineRight) {
+    p.line(endX + sidePadding, y - 4, lineRight, y - 4);
+  }
+
+  p.drawingContext.setLineDash([]);
+  p.pop();
+}
+
+function infoTextCentered(txt, cx, y, w, h, size = 20, leading = 30) {
+  p.noStroke();
+  p.fill(...TEXT_DARK, 240);
+  p.textFont(SERIF);
+  p.textStyle(p.NORMAL);
+  p.textSize(size);
+  p.textLeading(leading);
+  p.textAlign(p.CENTER);
+  p.text(txt, cx - w / 2, y, w, h);
+}
+
+function trackedTextWidth(str, spacing) {
+  let total = 0;
+  const chars = String(str).split('');
+  chars.forEach((c, i) => {
+    total += p.textWidth(c);
+    if (i < chars.length - 1) total += spacing;
+  });
+  return total;
+}
+
+function trackedTextCentered(str, cx, y, spacing) {
+  const totalW = trackedTextWidth(str, spacing);
+  let x = cx - totalW / 2;
+  const chars = String(str).split('');
+
+  chars.forEach((c, i) => {
+    p.text(c, x, y);
+    x += p.textWidth(c);
+    if (i < chars.length - 1) x += spacing;
+  });
+}
 
     function infoLabel(txt, x, y, lineEndX) {
       p.noStroke();
