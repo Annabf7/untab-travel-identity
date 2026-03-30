@@ -217,95 +217,120 @@ function renderCard(profile, containerId, answers = {}) {
       const total = vals.reduce((a, b) => a + b, 0) || 100;
       const linearW = vals.map(v => v / total);
 
-      const TOTAL_POINTS = 1400; // més punts totals
-      const MAX_REACH    = 760;  // px — arriben més lluny, fade suau a la punta
-      const MAX_SPREAD   = 85;   // amplada màxima al centre
+      const TOTAL_POINTS = 980;
+      const MAX_REACH    = 700;
+      const MAX_SPREAD   = 68;
 
       p.push();
       p.noStroke();
 
-      // Estructurals sempre al centre — ring rebaixat i lleugerament irregular
-      for (let j = 0; j < 160; j++) {
-        const px = Q_CX + p.randomGaussian(0, 58);
-        const py = Q_CY + p.randomGaussian(0, 58);
-        const r = p.random(0.9, 2.8);
-        // Outer ring: alpha baix + jitter per trencar la circumferència perfecta
-        const jx = p.random(-r * 0.6, r * 0.6);
-        const jy = p.random(-r * 0.6, r * 0.6);
-        p.fill(...STAR_MID, p.random(35, 62));
-        p.circle(px + jx, py + jy, r * 4.9);
-        p.fill(...STAR_WHITE, p.random(242, 255));
-        p.circle(px, py, r * 1.12);
+      // Glow central — aura molt suau, invisible però sentida
+      for (let j = 0; j < 5; j++) {
+        p.fill(...STAR_WHITE, p.random(5, 10));
+        p.circle(Q_CX + p.randomGaussian(0, 8), Q_CY + p.randomGaussian(0, 8), p.random(200, 320));
       }
 
-      // 4 cons: cada eix surt del centre, s'eixampla i s'estreny cap a la punta
+      // Estructurals al centre — reduïts i més concentrats
+      for (let j = 0; j < 70; j++) {
+        const px = Q_CX + p.randomGaussian(0, 38);
+        const py = Q_CY + p.randomGaussian(0, 38);
+        const r = p.random(0.8, 2.2);
+        const jx = p.random(-r * 0.5, r * 0.5);
+        const jy = p.random(-r * 0.5, r * 0.5);
+        p.fill(...STAR_MID, p.random(28, 48));
+        p.circle(px + jx, py + jy, r * 4.0);
+        p.fill(...STAR_WHITE, p.random(220, 255));
+        p.circle(px, py, r * 1.05);
+      }
+
+      // Distància màxima per eix sense envair la zona de les etiquetes
+      const SAFE_REACH = {
+        exploracion: 210,  // etiqueta a ~276px del centre — marge de seguretat
+        calma:       210,
+        cultura:     268,  // etiqueta a ~340px del centre
+        placer:      268,
+      };
+
+      // 4 cons direccionals
       axisNames.forEach((axis, i) => {
         const [cx, cy] = CORNERS[axis];
         const wi = linearW[i];
         const nPoints = Math.round(wi * TOTAL_POINTS);
         if (nPoints < 1) return;
 
-        // Vector unitari des del centre cap a la cantonada
         const dx = cx - Q_CX;
         const dy = cy - Q_CY;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const ux = dx / dist;
         const uy = dy / dist;
 
-        // Abast màxim proporcional al percentatge
-        const maxReach = wi * MAX_REACH;
+        // maxReach limitat per la safe zone — mai arriba al text
+        const maxReach = Math.min(wi * MAX_REACH, SAFE_REACH[axis]);
+        const thinZone = maxReach * 0.72; // des d'aquí comença el taper final
 
         for (let j = 0; j < nPoints; j++) {
-          // Distància al llarg de l'eix (uniforme)
-          const t = p.random(0, maxReach);
-          // Spread perpendicular: gradual — ample al centre, prim a la punta
-          const spread = Math.max(2, MAX_SPREAD * Math.pow(1 - t / maxReach, 0.6));
+          const tRaw = p.random(0, 1);
+          const t = tRaw * tRaw * maxReach;
+
+          const spread = Math.max(1.5, MAX_SPREAD * Math.pow(1 - t / maxReach, 0.5));
           const s = p.randomGaussian(0, spread);
 
           const px = Q_CX + ux * t + (-uy) * s;
           const py = Q_CY + uy * t +   ux  * s;
 
-          // Fade: els punts s'esvaeixen gradualment cap a la punta
-          const fade = Math.max(0.15, 1 - (t / maxReach) * 0.85);
+          // Fade base
+          const fade = Math.max(0.06, 1 - Math.pow(t / maxReach, 0.65) * 0.94);
+
+          // Fade extra a la zona de taper (últim 28% del con)
+          const edgeFade = t > thinZone
+            ? Math.max(0, 1 - (t - thinZone) / (maxReach - thinZone))
+            : 1;
+
+          const finalFade = fade * edgeFade;
+          const nearEdge  = t > thinZone;
 
           const type = p.random();
-          if (type < 0.18) {
-            // microdust — segueix els eixos
-            const r = p.random(0.35, 1.25);
-            p.fill(...STAR_MID, p.random(62, 102) * fade);
-            p.circle(px, py, r * 3.4);
-            p.fill(...STAR_WHITE, p.random(236, 255) * fade);
-            p.circle(px, py, r * 1.06);
-          } else if (type < 0.90) {
-            // grafita fosc petit — predominant als eixos
+          if (type < 0.14) {
+            const r = p.random(0.3, 1.0);
+            p.fill(...STAR_MID, p.random(50, 85) * finalFade);
+            p.circle(px, py, r * 3.0);
+            p.fill(...STAR_WHITE, p.random(210, 255) * finalFade);
+            p.circle(px, py, r * 1.0);
+          } else if (type < 0.58) {
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-            const r = p.random(0.4, 1.6);
-            p.fill(...darkColor, p.random(200, 255) * fade);
-            p.circle(px, py, r * 2.0);
-          } else if (type < 0.97) {
-            // grafita fosc mig
-            const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-            const r = p.random(1.0, 2.2);
-            p.fill(...darkColor, p.random(180, 240) * fade);
+            const r = p.random(0.3, nearEdge ? 0.8 : 1.1);
+            p.fill(...darkColor, p.random(170, 235) * finalFade);
             p.circle(px, py, r * 1.8);
+          } else if (type < 0.86) {
+            if (nearEdge) continue; // sense punts mitjans a la zona de taper
+            const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
+            const r = p.random(0.9, 1.8);
+            p.fill(...darkColor, p.random(140, 200) * finalFade);
+            p.circle(px, py, r * 2.2);
+          } else if (type < 0.97) {
+            if (nearEdge) continue; // sense punts grans a la zona de taper
+            const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
+            const r = p.random(1.5, 2.6);
+            p.fill(...darkColor, p.random(110, 165) * finalFade);
+            p.circle(px, py, r * 2.4);
           } else {
-            // anchor discret
-            clusterStar(px, py, p.random(1.0, 2.2));
+            if (nearEdge) continue;
+            clusterStar(px, py, p.random(0.9, 1.7));
           }
         }
       });
 
-      // Nucli fix sempre al centre dels eixos
-      for (let j = 0; j < 90; j++) {
-        const px = Q_CX + p.randomGaussian(0, 22);
-        const py = Q_CY + p.randomGaussian(0, 22);
-        const r = p.random(0.8, 2.8);
-        if (p.random() > 0.38) {
-          p.fill(...STAR_WHITE, p.random(232, 255));
-          p.circle(px, py, r * 1.8);
+      // Nucli central — dens i lluminós
+      for (let j = 0; j < 130; j++) {
+        const px = Q_CX + p.randomGaussian(0, 16);
+        const py = Q_CY + p.randomGaussian(0, 16);
+        const r = p.random(0.7, 2.4);
+        if (p.random() > 0.28) {
+          p.fill(...STAR_WHITE, p.random(215, 255));
+          p.circle(px, py, r * 1.9);
         } else {
           const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-          p.fill(...darkColor, p.random(210, 248));
+          p.fill(...darkColor, p.random(195, 255));
           p.circle(px, py, r * 1.6);
         }
       }
