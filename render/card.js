@@ -36,12 +36,10 @@ function renderCard(profile, containerId, answers = {}) {
     const Q_CY = (Q_T + Q_B) / 2;
 
     const HEADER_Y = 88;
-    const DIV1_Y = 862;
-    const NAME_Y = 1008;
-    const DIV2_Y = 1042;
-    const INFO_Y = 1094;
-
-    const COL_MID = W / 2;
+    const DIV1_Y = 830;
+    const NAME_Y = 970;
+    const DIV2_Y = 1004;
+    const INFO_Y = 1056;
 
     const CORNERS = {
       exploracion: [Q_CX, Q_T],   // Nord
@@ -145,11 +143,11 @@ function renderCard(profile, containerId, answers = {}) {
 
     function drawHeader() {
       p.drawingContext.save();
-      p.drawingContext.font = 'normal 22px "Helvetica Neue", Arial, sans-serif';
+      p.drawingContext.font = '300 22px "Oswald", sans-serif';
       p.drawingContext.fillStyle = `rgb(${TEXT_MAIN.join(',')})`;
       p.drawingContext.textAlign = 'center';
       p.drawingContext.textBaseline = 'middle';
-      p.drawingContext.letterSpacing = '0.18em';
+      p.drawingContext.letterSpacing = '0.12em';
       p.drawingContext.fillText('UNTAB TRAVEL', W / 2, HEADER_Y);
       p.drawingContext.restore();
     }
@@ -229,41 +227,75 @@ function renderCard(profile, containerId, answers = {}) {
     return p.lerp(p1, p2, t);
   }
 
-  const TOTAL = 9000;
+  function getDirectionalFlowX() {
+    return (axes.cultura - axes.placer) * 0.018;
+  }
+
+  function getDirectionalFlowY() {
+    return (axes.calma - axes.exploracion) * 0.018;
+  }
+
+  const flowX = getDirectionalFlowX();
+  const flowY = getDirectionalFlowY();
+
+  const TOTAL = 12000;
 
   for (let i = 0; i < TOTAL; i++) {
     const angle = p.random(p.TWO_PI);
     const perVal = getPercentAtAngle(angle);
 
-    let dist = p.pow(p.random(), 2.8) * 420;
-    dist *= p.map(perVal, 0, 100, 0.4, 1.05);
+    const weight = p.map(perVal, 0, 100, 0.3, 1.2);
 
-    const x = Q_CX + p.cos(angle) * dist + p.randomGaussian() * 10;
-    const y = Q_CY + p.sin(angle) * dist * 0.8 + p.randomGaussian() * 10;
+    // més buit als eixos febles
+    if (p.random() > Math.min(1, weight * 0.92)) continue;
 
-    const size = p.random(0.4, 3.2);
+    let dist = p.pow(p.random(), 2.8) * 520;
+    dist *= p.pow(weight, 2.2);
 
+    let x = Q_CX + p.cos(angle) * dist + p.randomGaussian() * 10;
+    let y = Q_CY + p.sin(angle) * dist * 0.8 + p.randomGaussian() * 10;
+
+    // flow subtil sense moure el centre
+    x += flowX * dist;
+    y += flowY * dist * 0.85;
+
+    const size = p.random(0.4, 3.0);
+
+    const darknessBias = p.map(perVal, 0, 100, 0.08, 0.42);
     const r = p.random();
-    if (r < 0.62) {
+
+    if (r < 0.54) {
       p.fill(...STAR_WHITE, p.random(80, 220));
-    } else if (r < 0.9) {
+    } else if (r < 0.84) {
       p.fill(...STAR_MID, p.random(70, 170));
+    } else if (r < 0.84 + darknessBias) {
+      const darkCol = p.random() < 0.55 ? STAR_DARK_1 : STAR_DARK_2;
+      p.fill(...darkCol, p.random(160, 255));
     } else {
-      p.fill(40, 35, 38, p.random(140, 240));
+      p.fill(...STAR_WHITE, p.random(35, 90));
     }
 
     drawOrganicParticle(x, y, size);
   }
 
-  for (let i = 0; i < 4500; i++) {
+  // micro densitat central amb lleu biaix
+  for (let i = 0; i < 4300; i++) {
     const angle = p.random(p.TWO_PI);
-    const r = p.pow(p.random(), 3.6) * 220;
+    const perVal = getPercentAtAngle(angle);
+    const weight = p.map(perVal, 0, 100, 0.55, 1.08);
 
-    const x = Q_CX + p.cos(angle) * r + p.randomGaussian() * 5;
-    const y = Q_CY + p.sin(angle) * r + p.randomGaussian() * 5;
+    let r = p.pow(p.random(), 3.6) * 220;
+    r *= weight;
 
-    p.fill(...STAR_WHITE, p.random(40, 120));
-    drawOrganicParticle(x, y, p.random(0.2, 1.4));
+    let x = Q_CX + p.cos(angle) * r + p.randomGaussian() * 5;
+    let y = Q_CY + p.sin(angle) * r + p.randomGaussian() * 5;
+
+    x += flowX * r * 0.45;
+    y += flowY * r * 0.38;
+
+    const alpha = p.map(perVal, 0, 100, 38, 120);
+    p.fill(...STAR_WHITE, alpha);
+    drawOrganicParticle(x, y, p.random(0.2, 1.35));
   }
 
   brightStar(Q_CX, Q_CY, 18);
@@ -337,69 +369,45 @@ function drawOrganicParticle(x, y, size) {
 }
 
    function drawInfoBlock() {
-  p.push();
-  p.drawingContext.setLineDash([2, 7]);
-  p.stroke(...RULE, 150);
-  p.strokeWeight(0.6);
-  p.line(COL_MID, INFO_Y + 10, COL_MID, INFO_Y + 258);
-  p.drawingContext.setLineDash([]);
-  p.pop();
+  const CX = W / 2;
+  const TW = 580;  // amplada del bloc de text
+  let y = INFO_Y;
 
-  const outerMargin = 192;
-const centerGap = 60;
-const colsShift = 36;
+  infoLabelCenter('ESENCIA VIAJERA', CX, y);
+  y += 26;
+  infoTextCenter(profile?.microADN || '—', CX, y, TW, 20, 26);
+  y += 58;
 
-  const colWidth = (W - outerMargin * 2 - centerGap) / 2;
+  infoLabelCenter('TRIBU', CX, y);
+  y += 26;
+  infoTextCenter(profile?.tribe || '—', CX, y, TW, 20, 26);
+  y += 58;
 
-  const leftX = outerMargin + colsShift;
-  const opticalNudge = 12;
-
-const rightX = outerMargin + colWidth + centerGap + opticalNudge + colsShift;
-
-  const leftEndX = leftX + colWidth;
-  const rightEndX = rightX + colWidth;
-
-  infoLabelLeft('MICRO ADN', leftX, INFO_Y, leftEndX);
-  infoTextLeft(profile?.microADN || '—', leftX, INFO_Y + 30, colWidth, 120, 22, 28);
-
-  infoLabelLeft('TRIBU VIAJERA', rightX, INFO_Y, rightEndX);
-  infoTextLeft(profile?.tribe || '—', rightX, INFO_Y + 30, colWidth, 80, 22, 28);
-
-  const DEST_Y = INFO_Y + 96;
-  infoLabelLeft('DESTINO', rightX, DEST_Y, rightEndX);
-  infoTextLeft(destination || '—', rightX, DEST_Y + 30, colWidth, 70, 22, 28);
+  infoLabelCenter('DESTINO IDEAL', CX, y);
+  y += 26;
+  infoTextCenter(destination || '—', CX, y, TW, 20, 26);
 }
 
-    function infoLabelLeft(txt, x, y, colEndX) {
-      p.noStroke();
-      p.fill(110, 102, 106, 255);
-      p.textFont(SERIF);
-      p.textStyle(p.NORMAL);
-      p.textSize(16.5);
-      p.textAlign(p.LEFT);
-
-      const endX = trackedTextLeft(txt, x, y, 2.1);
-
-      if (endX + 16 < colEndX) {
-        p.push();
-        p.drawingContext.setLineDash([1, 5]);
-        p.stroke(...RULE, 140);
-        p.strokeWeight(0.55);
-        p.line(endX + 14, y - 4, colEndX - 16, y - 4);
-        p.drawingContext.setLineDash([]);
-        p.pop();
-      }
+    function infoLabelCenter(txt, x, y) {
+      p.drawingContext.save();
+      p.drawingContext.font = '300 15px "Oswald", sans-serif';
+      p.drawingContext.fillStyle = 'rgb(110, 102, 106)';
+      p.drawingContext.textAlign = 'center';
+      p.drawingContext.textBaseline = 'alphabetic';
+      p.drawingContext.letterSpacing = '0.12em';
+      p.drawingContext.fillText(txt, x, y);
+      p.drawingContext.restore();
     }
 
-    function infoTextLeft(txt, x, y, w, h, size = 20, leading = 30) {
+    function infoTextCenter(txt, x, y, w, size = 22, leading = 28) {
       p.noStroke();
       p.fill(...TEXT_DARK, 248);
       p.textFont(SERIF);
       p.textStyle(p.NORMAL);
       p.textSize(size);
       p.textLeading(leading);
-      p.textAlign(p.LEFT);
-      p.text(txt, x, y, w, h);
+      p.textAlign(p.CENTER);
+      p.text(txt, x - w / 2, y, w, leading * 3);
     }
 
     function normalizeAxes(raw) {
@@ -434,18 +442,6 @@ const rightX = outerMargin + colWidth + centerGap + opticalNudge + colsShift;
       return txt;
     }
 
-    function trackedTextLeft(str, x, y, spacing) {
-      let cx = x;
-      const chars = String(str).split('');
-      p.textAlign(p.LEFT);
-
-      chars.forEach(c => {
-        p.text(c, cx, y);
-        cx += p.textWidth(c) + spacing;
-      });
-
-      return cx;
-    }
   });
 }
 
