@@ -20,7 +20,6 @@ function renderCard(profile, containerId, answers = {}) {
     const TEXT_DARK = [96, 88, 91];
     const TEXT_MAIN = [112, 103, 107];
     const TEXT_SOFT = [150, 140, 145];
-    const TEXT_LIGHT = [170, 161, 166];
     const RULE = [214, 208, 211];
 
     // Constellation palette
@@ -42,25 +41,13 @@ function renderCard(profile, containerId, answers = {}) {
     const DIV2_Y = 1042;
     const INFO_Y = 1094;
 
-    const INFO_LEFT = MARGIN;
-    const INFO_RIGHT = W - MARGIN;
-    const INFO_CENTER = W / 2;
-
-    const INFO_GAP = 44;
-    const COL_W = (INFO_RIGHT - INFO_LEFT - INFO_GAP) / 2;
-
-    const COL_L = INFO_LEFT;
-    const COL_R = INFO_CENTER + INFO_GAP / 2;
-    const COL_MID = INFO_CENTER;
-
-    const COL_W_L = COL_W;
-    const COL_W_R = COL_W;
+    const COL_MID = W / 2;
 
     const CORNERS = {
-      exploracion: [Q_L, Q_T],
-      cultura: [Q_R, Q_T],
-      placer: [Q_L, Q_B],
-      calma: [Q_R, Q_B],
+      exploracion: [Q_CX, Q_T],   // Nord
+      cultura:     [Q_R,  Q_CY],  // Est
+      calma:       [Q_CX, Q_B],   // Sud
+      placer:      [Q_L,  Q_CY],  // Oest
     };
 
     const AXIS_LABEL = {
@@ -169,65 +156,56 @@ function renderCard(profile, containerId, answers = {}) {
 
     function drawGrid() {
       p.push();
-      p.noStroke();
 
-      const poles = [
-        [Q_CX, Q_T + 22],
-        [Q_CX, Q_B - 22],
-        [Q_L + 22, Q_CY],
-        [Q_R - 22, Q_CY],
-      ];
-
-      poles.forEach(([mx, my]) => {
-        p.fill(185, 181, 178, 42);
-        p.circle(mx, my, 1.7);
-      });
-
-      p.stroke(185, 181, 178, 34);
-      p.strokeWeight(0.32);
-      p.drawingContext.setLineDash([2, 18]);
-      const cLen = 34;
-      p.line(Q_CX - cLen, Q_CY, Q_CX + cLen, Q_CY);
-      p.line(Q_CX, Q_CY - cLen, Q_CX, Q_CY + cLen);
-      p.drawingContext.setLineDash([]);
-
-      p.stroke(240, 238, 234, 26);
-      p.strokeWeight(0.28);
-      const dLen = 54;
-      p.line(Q_CX - dLen, Q_CY - dLen, Q_CX + dLen, Q_CY + dLen);
-      p.line(Q_CX + dLen, Q_CY - dLen, Q_CX - dLen, Q_CY + dLen);
-
-      p.noStroke();
-      p.fill(190, 186, 183, 28);
-      p.circle(Q_CX, Q_CY, 1.6);
+      p.stroke(120, 120, 120, 50);
+      p.strokeWeight(0.5);
+      const arm = 190;
+      p.line(Q_CX, Q_CY - arm, Q_CX, Q_CY + arm);
+      p.line(Q_CX - arm, Q_CY, Q_CX + arm, Q_CY);
 
       p.pop();
     }
 
     function drawAxisLabels() {
-      Object.entries(CORNERS).forEach(([axis, [cx, cy]]) => {
-        const isRight = cx > Q_CX;
-        const isBottom = cy > Q_CY;
+      p.noStroke();
+      p.textFont(SERIF);
+      p.textStyle(p.NORMAL);
 
-        const x = isRight ? cx - 2 : cx + 2;
-        const nameY = isBottom ? cy - 8 : cy + 68;
-        const pctY = nameY + 37;
+      // Nord — Exploración (centrat, dins de l'àrea, sota Q_T)
+      p.textAlign(p.CENTER);
+      p.fill(...TEXT_MAIN, 248);
+      p.textSize(31);
+      p.text(AXIS_LABEL.exploracion, Q_CX, Q_T + 34);
+      p.fill(...TEXT_SOFT, 228);
+      p.textSize(15);
+      p.text(`+${axes.exploracion}%`, Q_CX, Q_T + 60);
 
-        p.noStroke();
-        p.textAlign(isRight ? p.RIGHT : p.LEFT);
+      // Sud — Calma (centrat, dins de l'àrea, sobre Q_B)
+      p.textAlign(p.CENTER);
+      p.fill(...TEXT_MAIN, 248);
+      p.textSize(31);
+      p.text(AXIS_LABEL.calma, Q_CX, Q_B - 58);
+      p.fill(...TEXT_SOFT, 228);
+      p.textSize(15);
+      p.text(`+${axes.calma}%`, Q_CX, Q_B - 32);
 
-        p.fill(...TEXT_MAIN, 248);
-        p.textFont(SERIF);
-        p.textStyle(p.NORMAL);
-        p.textSize(31);
-        p.text(AXIS_LABEL[axis], x, nameY);
+      // Est — Cultura (alineat dreta, dins de l'àrea, a l'esquerra de Q_R)
+      p.textAlign(p.RIGHT);
+      p.fill(...TEXT_MAIN, 248);
+      p.textSize(31);
+      p.text(AXIS_LABEL.cultura, Q_R - 20, Q_CY - 8);
+      p.fill(...TEXT_SOFT, 228);
+      p.textSize(15);
+      p.text(`+${axes.cultura}%`, Q_R - 20, Q_CY + 22);
 
-        p.fill(...TEXT_SOFT, 228);
-        p.textFont(SERIF);
-        p.textStyle(p.NORMAL);
-        p.textSize(15);
-        p.text(`+${axes[axis]}%`, x, pctY);
-      });
+      // Oest — Placer (alineat esquerra, dins de l'àrea, a la dreta de Q_L)
+      p.textAlign(p.LEFT);
+      p.fill(...TEXT_MAIN, 248);
+      p.textSize(31);
+      p.text(AXIS_LABEL.placer, Q_L + 20, Q_CY - 8);
+      p.fill(...TEXT_SOFT, 228);
+      p.textSize(15);
+      p.text(`+${axes.placer}%`, Q_L + 20, Q_CY + 22);
 
       p.textAlign(p.LEFT);
     }
@@ -366,16 +344,6 @@ function renderCard(profile, containerId, answers = {}) {
         p.fill(...STAR_WHITE, a);
         p.circle(x, y, r);
       });
-
-      p.stroke(...STAR_WHITE, 205);
-      p.strokeWeight(1.2);
-      p.line(x - s * 8.8, y, x + s * 8.8, y);
-      p.line(x, y - s * 8.8, x, y + s * 8.8);
-
-      p.stroke(182, 182, 182, 125);
-      p.strokeWeight(0.85);
-      p.line(x - s * 5.2, y - s * 5.2, x + s * 5.2, y + s * 5.2);
-      p.line(x + s * 5.2, y - s * 5.2, x - s * 5.2, y + s * 5.2);
 
       p.noStroke();
       p.fill(...STAR_WHITE, 255);
