@@ -217,27 +217,27 @@ function renderCard(profile, containerId, answers = {}) {
       const total = vals.reduce((a, b) => a + b, 0) || 100;
       const linearW = vals.map(v => v / total);
 
-      const TOTAL_POINTS = 980;
+      const TOTAL_POINTS = 680;   // menys soroll, punts més seleccionats
       const MAX_REACH    = 700;
       const MAX_SPREAD   = 68;
 
       p.push();
       p.noStroke();
 
-      // Glow central — aura molt suau, invisible però sentida
-      for (let j = 0; j < 5; j++) {
-        p.fill(...STAR_WHITE, p.random(5, 10));
-        p.circle(Q_CX + p.randomGaussian(0, 8), Q_CY + p.randomGaussian(0, 8), p.random(200, 320));
+      // Glow central — lleugerament reforçat, centre clar i lluminós
+      for (let j = 0; j < 6; j++) {
+        p.fill(...STAR_WHITE, p.random(6, 14));
+        p.circle(Q_CX + p.randomGaussian(0, 6), Q_CY + p.randomGaussian(0, 6), p.random(180, 300));
       }
 
-      // Estructurals al centre — reduïts i més concentrats
-      for (let j = 0; j < 70; j++) {
-        const px = Q_CX + p.randomGaussian(0, 38);
-        const py = Q_CY + p.randomGaussian(0, 38);
-        const r = p.random(0.8, 2.2);
+      // Estructurals al centre — concentrats i nets
+      for (let j = 0; j < 55; j++) {
+        const px = Q_CX + p.randomGaussian(0, 32);
+        const py = Q_CY + p.randomGaussian(0, 32);
+        const r = p.random(0.8, 2.0);
         const jx = p.random(-r * 0.5, r * 0.5);
         const jy = p.random(-r * 0.5, r * 0.5);
-        p.fill(...STAR_MID, p.random(28, 48));
+        p.fill(...STAR_MID, p.random(32, 52));
         p.circle(px + jx, py + jy, r * 4.0);
         p.fill(...STAR_WHITE, p.random(220, 255));
         p.circle(px, py, r * 1.05);
@@ -245,9 +245,9 @@ function renderCard(profile, containerId, answers = {}) {
 
       // Distància màxima per eix sense envair la zona de les etiquetes
       const SAFE_REACH = {
-        exploracion: 210,  // etiqueta a ~276px del centre — marge de seguretat
+        exploracion: 210,
         calma:       210,
-        cultura:     268,  // etiqueta a ~340px del centre
+        cultura:     268,
         placer:      268,
       };
 
@@ -264,9 +264,8 @@ function renderCard(profile, containerId, answers = {}) {
         const ux = dx / dist;
         const uy = dy / dist;
 
-        // maxReach limitat per la safe zone — mai arriba al text
         const maxReach = Math.min(wi * MAX_REACH, SAFE_REACH[axis]);
-        const thinZone = maxReach * 0.72; // des d'aquí comença el taper final
+        const thinZone = maxReach * 0.65; // taper comença abans — gradient més suau
 
         for (let j = 0; j < nPoints; j++) {
           const tRaw = p.random(0, 1);
@@ -278,10 +277,10 @@ function renderCard(profile, containerId, answers = {}) {
           const px = Q_CX + ux * t + (-uy) * s;
           const py = Q_CY + uy * t +   ux  * s;
 
-          // Fade base
-          const fade = Math.max(0.06, 1 - Math.pow(t / maxReach, 0.65) * 0.94);
+          // Fade base — decau més ràpid: centre dens, vores lleugers
+          const fade = Math.max(0.04, 1 - Math.pow(t / maxReach, 0.55) * 0.96);
 
-          // Fade extra a la zona de taper (últim 28% del con)
+          // Fade extra a la zona de taper
           const edgeFade = t > thinZone
             ? Math.max(0, 1 - (t - thinZone) / (maxReach - thinZone))
             : 1;
@@ -290,47 +289,52 @@ function renderCard(profile, containerId, answers = {}) {
           const nearEdge  = t > thinZone;
 
           const type = p.random();
-          if (type < 0.14) {
-            const r = p.random(0.3, 1.0);
-            p.fill(...STAR_MID, p.random(50, 85) * finalFade);
+          if (type < 0.10) {
+            // Brillants petits amb halo — 10%
+            const r = p.random(0.4, 1.1);
+            p.fill(...STAR_MID, p.random(45, 75) * finalFade);
             p.circle(px, py, r * 3.0);
             p.fill(...STAR_WHITE, p.random(210, 255) * finalFade);
             p.circle(px, py, r * 1.0);
-          } else if (type < 0.58) {
+          } else if (type < 0.38) {
+            // Foscos petits — 28% (era 44%: menys gra uniforme)
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-            const r = p.random(0.3, nearEdge ? 0.8 : 1.1);
-            p.fill(...darkColor, p.random(170, 235) * finalFade);
-            p.circle(px, py, r * 1.8);
-          } else if (type < 0.86) {
-            if (nearEdge) continue; // sense punts mitjans a la zona de taper
-            const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-            const r = p.random(0.9, 1.8);
+            const r = p.random(0.3, nearEdge ? 0.7 : 0.9);
             p.fill(...darkColor, p.random(140, 200) * finalFade);
-            p.circle(px, py, r * 2.2);
-          } else if (type < 0.97) {
-            if (nearEdge) continue; // sense punts grans a la zona de taper
+            p.circle(px, py, r * 1.8);
+          } else if (type < 0.70) {
+            // Foscos mitjans — 32% (era 28%: més presència)
+            if (nearEdge) continue;
             const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-            const r = p.random(1.5, 2.6);
-            p.fill(...darkColor, p.random(110, 165) * finalFade);
+            const r = p.random(1.0, 2.0);
+            p.fill(...darkColor, p.random(150, 215) * finalFade);
+            p.circle(px, py, r * 2.2);
+          } else if (type < 0.90) {
+            // Foscos grans — 20% (era 11%: punts landmark clars)
+            if (nearEdge) continue;
+            const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
+            const r = p.random(1.6, 2.8);
+            p.fill(...darkColor, p.random(120, 175) * finalFade);
             p.circle(px, py, r * 2.4);
           } else {
+            // clusterStar — 10% (era 3%: accents elegants)
             if (nearEdge) continue;
             clusterStar(px, py, p.random(0.9, 1.7));
           }
         }
       });
 
-      // Nucli central — dens i lluminós
-      for (let j = 0; j < 130; j++) {
-        const px = Q_CX + p.randomGaussian(0, 16);
-        const py = Q_CY + p.randomGaussian(0, 16);
-        const r = p.random(0.7, 2.4);
-        if (p.random() > 0.28) {
-          p.fill(...STAR_WHITE, p.random(215, 255));
+      // Nucli central — dens, lluminós, ben definit
+      for (let j = 0; j < 120; j++) {
+        const px = Q_CX + p.randomGaussian(0, 14);
+        const py = Q_CY + p.randomGaussian(0, 14);
+        const r = p.random(0.7, 2.6);
+        if (p.random() > 0.25) {
+          p.fill(...STAR_WHITE, p.random(220, 255));
           p.circle(px, py, r * 1.9);
         } else {
           const darkColor = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
-          p.fill(...darkColor, p.random(195, 255));
+          p.fill(...darkColor, p.random(200, 255));
           p.circle(px, py, r * 1.6);
         }
       }
