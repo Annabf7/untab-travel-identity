@@ -130,6 +130,26 @@ const formState = {
   onSubmit: null,
 };
 
+// ---- Helpers ----
+
+function getOtherOption(step) {
+  return step.options?.find(o => o.label === 'Otro') || null;
+}
+
+function showValidationError(message) {
+  const el = document.getElementById('validation-error-msg');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.add('visible');
+}
+
+function clearValidationError() {
+  const el = document.getElementById('validation-error-msg');
+  if (el) { el.textContent = ''; el.classList.remove('visible'); }
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('field-error'));
+  document.querySelectorAll('.options-group.has-error').forEach(e => e.classList.remove('has-error'));
+}
+
 // ---- Public ----
 
 function initForm(onSubmit) {
@@ -147,7 +167,8 @@ function renderStep() {
   const total = STEPS.length;
   const current = formState.currentStep + 1;
   const isLast = current === total;
-  const showNext = step.type !== 'radio';
+  // Show Continuar for non-radio steps, and also for radio steps with an "Otro" option
+  const showNext = step.type !== 'radio' || !!getOtherOption(step);
 
   container.innerHTML = `
     <div class="step-progress">
@@ -158,6 +179,7 @@ function renderStep() {
       <div class="step-body">
         ${renderStepContent(step)}
       </div>
+      <div class="validation-error" id="validation-error-msg"></div>
       <div class="step-actions">
         ${formState.currentStep > 0
           ? '<button type="button" class="btn-back" id="btn-back">← Anterior</button>'
@@ -220,6 +242,11 @@ function renderStepContent(step) {
               <input type="radio" id="${step.id}_${o.value}" name="${step.id}" value="${o.value}">
               <span>${o.label}</span>
             </label>
+            ${o.label === 'Otro' ? `
+              <div class="other-input-wrap" id="${step.id}_other_wrap">
+                <input type="text" id="${step.id}_other" placeholder="Cuéntanos más…" autocomplete="off">
+              </div>
+            ` : ''}
           `).join('')}
         </div>
       `;
@@ -236,6 +263,11 @@ function renderStepContent(step) {
               <input type="checkbox" id="${step.id}_${o.value}" name="${step.id}" value="${o.value}">
               <span>${o.label}</span>
             </label>
+            ${o.label === 'Otro' ? `
+              <div class="other-input-wrap" id="${step.id}_other_wrap">
+                <input type="text" id="${step.id}_other" placeholder="Cuéntanos más…" autocomplete="off">
+              </div>
+            ` : ''}
           `).join('')}
         </div>
       `;
@@ -270,22 +302,59 @@ function attachStepListeners(step) {
   }
 
   if (step.type === 'radio') {
-    const saved = formState.answers[step.id];
+    const saved      = formState.answers[step.id];
+    const savedOther = formState.answers[`${step.id}_other`] || '';
+    const otherOpt   = getOtherOption(step);
+    const otherWrap  = otherOpt ? document.getElementById(`${step.id}_other_wrap`) : null;
+    const otherInput = otherOpt ? document.getElementById(`${step.id}_other`)      : null;
+
     document.querySelectorAll(`input[name="${step.id}"]`).forEach(radio => {
-      if (saved === radio.value) radio.checked = true;
-      radio.addEventListener('change', () => setTimeout(nextStep, 280));
+      if (saved === radio.value) {
+        radio.checked = true;
+        if (otherOpt && radio.value === otherOpt.value) {
+          if (otherWrap)  otherWrap.classList.add('visible');
+          if (otherInput) otherInput.value = savedOther;
+        }
+      }
+      radio.addEventListener('change', () => {
+        clearValidationError();
+        const isOther = otherOpt && radio.value === otherOpt.value;
+        if (otherWrap) otherWrap.classList.toggle('visible', isOther);
+        if (isOther) {
+          otherInput?.focus();
+          // Don't auto-advance — user needs to fill in the text and click Continuar
+        } else {
+          setTimeout(nextStep, 280);
+        }
+      });
     });
   }
 
   if (step.type === 'checkbox') {
-    const saved = formState.answers[step.id] || [];
+    const saved      = formState.answers[step.id] || [];
+    const savedOther = formState.answers[`${step.id}_other`] || '';
+    const otherOpt   = getOtherOption(step);
+    const otherWrap  = otherOpt ? document.getElementById(`${step.id}_other_wrap`) : null;
+    const otherInput = otherOpt ? document.getElementById(`${step.id}_other`)      : null;
+
     document.querySelectorAll(`input[name="${step.id}"]`).forEach(cb => {
       if (saved.includes(cb.value)) cb.checked = true;
       cb.addEventListener('change', () => {
+        clearValidationError();
         const checked = document.querySelectorAll(`input[name="${step.id}"]:checked`);
-        if (checked.length > step.max) cb.checked = false;
+        if (checked.length > step.max) { cb.checked = false; return; }
+        if (otherOpt && cb.value === otherOpt.value && otherWrap) {
+          otherWrap.classList.toggle('visible', cb.checked);
+          if (cb.checked) otherInput?.focus();
+        }
       });
     });
+
+    // Restore "Otro" input if it was previously checked
+    if (otherOpt && saved.includes(otherOpt.value)) {
+      if (otherWrap)  otherWrap.classList.add('visible');
+      if (otherInput) otherInput.value = savedOther;
+    }
   }
 }
 
@@ -304,24 +373,70 @@ function saveCurrentStep() {
   } else if (step.type === 'radio') {
     const el = document.querySelector(`input[name="${step.id}"]:checked`);
     a[step.id] = el ? el.value : '';
+    const otherInput = document.getElementById(`${step.id}_other`);
+    if (otherInput) a[`${step.id}_other`] = otherInput.value.trim();
   } else if (step.type === 'checkbox') {
     a[step.id] = Array.from(
       document.querySelectorAll(`input[name="${step.id}"]:checked`)
     ).map(el => el.value);
+    const otherInput = document.getElementById(`${step.id}_other`);
+    if (otherInput) a[`${step.id}_other`] = otherInput.value.trim();
   }
 }
 
 function validateCurrentStep() {
+  clearValidationError();
   const step = STEPS[formState.currentStep];
-  if (!step.required) return true;
 
   if (step.type === 'text' || step.type === 'email') {
+    if (!step.required) return true;
     const val = (document.getElementById(step.id)?.value || '').trim();
     if (!val) {
       document.getElementById(step.id)?.classList.add('field-error');
+      showValidationError('Este campo es obligatorio.');
       return false;
     }
   }
+
+  if (step.type === 'radio') {
+    const checked = document.querySelector(`input[name="${step.id}"]:checked`);
+    if (!checked) {
+      document.querySelector('.options-group')?.classList.add('has-error');
+      showValidationError('Selecciona una opción para continuar.');
+      return false;
+    }
+    const otherOpt = getOtherOption(step);
+    if (otherOpt && checked.value === otherOpt.value) {
+      const otherInput = document.getElementById(`${step.id}_other`);
+      if (otherInput && !otherInput.value.trim()) {
+        otherInput.classList.add('field-error');
+        showValidationError('Escribe tu respuesta para continuar.');
+        return false;
+      }
+    }
+  }
+
+  if (step.type === 'checkbox') {
+    const checked = document.querySelectorAll(`input[name="${step.id}"]:checked`);
+    if (checked.length === 0) {
+      document.querySelector('.options-group')?.classList.add('has-error');
+      showValidationError('Selecciona al menos una opción para continuar.');
+      return false;
+    }
+    const otherOpt = getOtherOption(step);
+    if (otherOpt) {
+      const otherChecked = document.querySelector(`input[name="${step.id}"][value="${otherOpt.value}"]:checked`);
+      if (otherChecked) {
+        const otherInput = document.getElementById(`${step.id}_other`);
+        if (otherInput && !otherInput.value.trim()) {
+          otherInput.classList.add('field-error');
+          showValidationError('Escribe tu respuesta para continuar.');
+          return false;
+        }
+      }
+    }
+  }
+
   return true;
 }
 

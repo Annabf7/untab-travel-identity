@@ -12,15 +12,32 @@ document.addEventListener('DOMContentLoaded', async function () {
     rules = getMockRules();
   }
 
+  document.getElementById('btn-start').addEventListener('click', function () {
+    document.getElementById('view-intro').hidden = true;
+    document.getElementById('view-form').hidden = false;
+    startForm(rules);
+  });
+});
+
+function startForm(rules) {
   initForm(function (answers) {
     console.log('ANSWERS:', answers);
     const axes    = calculateAxes(answers, rules.scoringRules);
     console.log('AXES RAW:', axes);
     const profile = buildProfile(answers, axes, rules);
     console.log('PROFILE FINAL:', profile);
-    showResult(profile);
-    document.fonts.ready.then(function () {
-      renderCard(profile, 'card-container', answers);
-    });
+
+    // Outro screen
+    document.getElementById('view-form').hidden = true;
+    const outro = document.getElementById('view-outro');
+    outro.hidden = false;
+
+    setTimeout(function () {
+      outro.hidden = true;
+      showResult(profile);
+      document.fonts.ready.then(function () {
+        renderCard(profile, 'card-container', answers);
+      });
+    }, 1800);
   });
-});
+}

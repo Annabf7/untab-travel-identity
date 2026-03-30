@@ -9,10 +9,10 @@
 }
 
 :root {
-  --bg: #fcf8fa;
+  --bg: #f5f5f3;
   --ink: #1a1a1a;
   --ink-light: #6b6b6b;
-  --accent: #c9b8a8;
+  --accent: #b0a898;
   --font-serif: 'Georgia', 'Times New Roman', serif;
   --font-sans: 'Helvetica Neue', 'Arial', sans-serif;
 }
@@ -38,7 +38,7 @@ html, body {
   left: 0;
   width: 100%;
   height: 2px;
-  background: #ede6ea;
+  background: #e2e2e0;
   z-index: 100;
 }
 
@@ -78,7 +78,7 @@ html, body {
 }
 
 .step-count span {
-  color: #d8cdd4;
+  color: #c2c2be;
 }
 
 .step-body {
@@ -129,7 +129,7 @@ html, body {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #e0d8dc;
+  border-bottom: 1px solid #d8d8d4;
   padding: 10px 0;
   font-family: var(--font-sans);
   font-size: 18px;
@@ -146,7 +146,7 @@ html, body {
 
 .step-field input::placeholder,
 .step-field textarea::placeholder {
-  color: #c8bfc4;
+  color: #b8b8b4;
 }
 
 .step-field input.field-error {
@@ -197,12 +197,12 @@ html, body {
 
 .option:hover {
   border-color: var(--accent);
-  background: #fdf5f8;
+  background: #f0f0ee;
 }
 
 .option:has(input:checked) {
   border-color: var(--ink);
-  background: #fdf5f8;
+  background: #f0f0ee;
 }
 
 .option input[type="radio"],
@@ -345,4 +345,167 @@ html, body {
 .btn-download:hover {
   background: var(--ink);
   color: var(--bg);
+}
+
+/* ===========================
+   Validation error
+   =========================== */
+
+.validation-error {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: #a05248;
+  margin-top: 16px;
+  display: none;
+}
+
+.validation-error.visible {
+  display: block;
+}
+
+.options-group.has-error {
+  border-left: 2px solid #c07068;
+  padding-left: 12px;
+}
+
+/* ===========================
+   "Otro" expandable input
+   =========================== */
+
+.other-input-wrap {
+  display: none;
+  padding: 6px 0 4px 30px;
+}
+
+.other-input-wrap.visible {
+  display: block;
+}
+
+.other-input-wrap input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #d8d8d4;
+  padding: 8px 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.other-input-wrap input:focus {
+  border-bottom-color: var(--ink);
+}
+
+.other-input-wrap input::placeholder {
+  color: #b8b8b4;
+}
+
+.other-input-wrap input.field-error {
+  border-bottom-color: #c07068;
+}
+
+/* ===========================
+   Intro screen
+   =========================== */
+
+#view-intro {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 80px 40px;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .intro-wrapper {
+    padding: 80px 24px;
+  }
+}
+
+.intro-title {
+  font-family: var(--font-serif);
+  font-size: 38px;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+  .intro-title {
+    font-size: 30px;
+  }
+}
+
+.intro-text {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-light);
+  margin-bottom: 52px;
+  max-width: 420px;
+}
+
+.btn-start {
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  padding: 14px 36px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-start:hover {
+  opacity: 0.75;
+}
+
+/* ===========================
+   Outro screen
+   =========================== */
+
+#view-outro {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.outro-wrapper {
+  max-width: 480px;
+  text-align: center;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.outro-text {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+@media (max-width: 480px) {
+  .outro-text {
+    font-size: 19px;
+  }
 }

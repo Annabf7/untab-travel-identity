@@ -12,10 +12,26 @@
 <body>
 
   <main id="app">
-    <!-- Step 1: Formulari -->
-    <section id="view-form"></section>
+    <!-- Intro -->
+    <section id="view-intro">
+      <div class="intro-wrapper animate-in">
+        <h1 class="intro-title">Descubre tu identidad viajera</h1>
+        <p class="intro-text">Responde a unas pocas preguntas y deja que tu constelación tome forma.</p>
+        <button type="button" class="btn-start" id="btn-start">Empezar</button>
+      </div>
+    </section>
 
-    <!-- Step 2: Resultat + render p5 -->
+    <!-- Formulari -->
+    <section id="view-form" hidden></section>
+
+    <!-- Outro (transició emocional) -->
+    <section id="view-outro" hidden>
+      <div class="outro-wrapper">
+        <p class="outro-text">La constelación Untab ya empieza a mostrar la forma única de tu perfil.<br><br>Muy pronto descubrirás tu brújula, tu tribu y el destino que mejor encaja contigo.</p>
+      </div>
+    </section>
+
+    <!-- Resultat + render p5 -->
     <section id="view-result" hidden></section>
   </main>
 
@@ -37,7 +53,7 @@
   <script src="ui/result.js"></script>
 
   <!-- Render layer -->
-  <script src="render/card.js?v=33"></script>
+  <script src="render/card.js?v=34"></script>
 
   <!-- Orchestration -->
   <script src="app.js"></script>
