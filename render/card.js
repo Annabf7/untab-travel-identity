@@ -11,8 +11,6 @@ function renderCard(profile, containerId, answers = {}) {
   new p5(function (p) {
     const W = 1080;
     const H = 1350;
-    const MARGIN = 120;
-
     const SERIF = 'Cormorant Garamond';
 
     // Base palette
@@ -30,16 +28,14 @@ function renderCard(profile, containerId, answers = {}) {
 
     const Q_L = 150;
     const Q_R = 930;
-    const Q_T = 172;
-    const Q_B = 792;
+    const Q_T = 200;
+    const Q_B = 830;
     const Q_CX = (Q_L + Q_R) / 2;
     const Q_CY = (Q_T + Q_B) / 2;
 
-    const HEADER_Y = 88;
-    const DIV1_Y = 830;
-    const NAME_Y = 970;
-    const DIV2_Y = 1004;
-    const INFO_Y = 1056;
+    const HEADER_Y = 76;
+    const NAME_Y = 1060;
+    const INFO_Y = 1115;
 
     const CORNERS = {
       exploracion: [Q_CX, Q_T],   // Nord
@@ -75,9 +71,7 @@ function renderCard(profile, containerId, answers = {}) {
       drawGrid();
       drawNebula();
       drawAxisLabels();
-      hRule(MARGIN, DIV1_Y, W - MARGIN, 0.74);
       drawName();
-      hRule(MARGIN, DIV2_Y, W - MARGIN, 0.56);
       drawInfoBlock();
     };
 
@@ -155,8 +149,8 @@ function renderCard(profile, containerId, answers = {}) {
     function drawGrid() {
       p.push();
 
-      p.stroke(120, 120, 120, 50);
-      p.strokeWeight(0.5);
+      p.stroke(120, 120, 120, 28);
+      p.strokeWeight(0.4);
       const arm = 190;
       p.line(Q_CX, Q_CY - arm, Q_CX, Q_CY + arm);
       p.line(Q_CX - arm, Q_CY, Q_CX + arm, Q_CY);
@@ -209,130 +203,132 @@ function renderCard(profile, containerId, answers = {}) {
     }
 
     function drawNebula() {
-  p.push();
-  p.noStroke();
+      p.push();
+      p.noStroke();
 
-  const axisNamesArr = ['exploracion', 'cultura', 'calma', 'placer'];
+      // Angles cardinals: N=exploración, E=cultura, S=calma, W=placer
+      const AXIS_ANGLES = {
+        exploracion: -p.HALF_PI,
+        cultura:      0,
+        calma:        p.HALF_PI,
+        placer:       p.PI,
+      };
 
-  function getPercentAtAngle(ang) {
-    let a = ang % p.TWO_PI;
-    if (a < 0) a += p.TWO_PI;
+      // Ordenar eixos per força
+      const sorted = Object.entries(axes).sort((a, b) => b[1] - a[1]);
 
-    const idx1 = Math.floor(a / p.HALF_PI);
-    const idx2 = (idx1 + 1) % 4;
-    const t = (a - (idx1 * p.HALF_PI)) / p.HALF_PI;
+      // Configuració per rang: dominant → residual
+      const PLUME = [
+        { count: 5000, reach: 450, cross: 40, exp: 1.8 },
+        { count: 3200, reach: 330, cross: 46, exp: 2.0 },
+        { count: 550,  reach: 100, cross: 30, exp: 2.8 },
+        { count: 220,  reach: 50,  cross: 22, exp: 3.4 },
+      ];
 
-    const p1 = axes[axisNamesArr[idx1]];
-    const p2 = axes[axisNamesArr[idx2]];
-    return p.lerp(p1, p2, t);
-  }
+      // ── Plomes direccionals ──
+      sorted.forEach(([name, pct], rank) => {
+        const cfg = PLUME[rank];
+        const dir = AXIS_ANGLES[name];
+        const strength = Math.max(0.2, pct / 100);
 
-  function getDirectionalFlowX() {
-    return (axes.cultura - axes.placer) * 0.018;
-  }
+        for (let i = 0; i < cfg.count; i++) {
+          // Distància al llarg de la ploma
+          const along = p.pow(p.random(), cfg.exp) * cfg.reach * strength;
+          // Dispersió perpendicular (s'obre lleugerament amb la distància)
+          const crossW = cfg.cross * (0.35 + 0.65 * (along / (cfg.reach * strength)));
+          const across = p.randomGaussian() * crossW;
 
-  function getDirectionalFlowY() {
-    return (axes.calma - axes.exploracion) * 0.018;
-  }
+          const x = Q_CX + p.cos(dir) * along - p.sin(dir) * across;
+          const y = Q_CY + p.sin(dir) * along + p.cos(dir) * across;
 
-  const flowX = getDirectionalFlowX();
-  const flowY = getDirectionalFlowY();
+          // Dissolució gradual a la perifèria
+          const t = along / (cfg.reach * strength);
+          if (t > 0.8 && p.random() < (t - 0.8) * 4) continue;
 
-  const TOTAL = 12000;
+          const size = p.random(0.3, 2.6) * (1 - t * 0.35);
+          const fade = 1 - t * 0.65;
 
-  for (let i = 0; i < TOTAL; i++) {
-    const angle = p.random(p.TWO_PI);
-    const perVal = getPercentAtAngle(angle);
+          const r = p.random();
+          if (r < 0.50) {
+            p.fill(...STAR_WHITE, p.random(70, 210) * fade);
+          } else if (r < 0.76) {
+            p.fill(...STAR_MID, p.random(55, 155) * fade);
+          } else {
+            const dc = p.random() < 0.5 ? STAR_DARK_1 : STAR_DARK_2;
+            p.fill(...dc, p.random(100, 220) * fade);
+          }
 
-    const weight = p.map(perVal, 0, 100, 0.3, 1.2);
+          drawOrganicParticle(x, y, size);
+        }
+      });
 
-    // més buit als eixos febles
-    if (p.random() > Math.min(1, weight * 0.92)) continue;
+      // ── Nucli dens central (amb biaix direccional subtil) ──
+      const domDir = AXIS_ANGLES[sorted[0][0]];
+      const secDir = AXIS_ANGLES[sorted[1][0]];
 
-    let dist = p.pow(p.random(), 2.8) * 520;
-    dist *= p.pow(weight, 2.2);
+      for (let i = 0; i < 3800; i++) {
+        let angle;
+        const pick = p.random();
+        if (pick < 0.35) {
+          angle = domDir + p.randomGaussian() * 0.7;
+        } else if (pick < 0.55) {
+          angle = secDir + p.randomGaussian() * 0.8;
+        } else {
+          angle = p.random(p.TWO_PI);
+        }
 
-    let x = Q_CX + p.cos(angle) * dist + p.randomGaussian() * 10;
-    let y = Q_CY + p.sin(angle) * dist * 0.8 + p.randomGaussian() * 10;
+        const r = p.pow(p.random(), 4.5) * 95;
+        const x = Q_CX + p.cos(angle) * r + p.randomGaussian() * 2.5;
+        const y = Q_CY + p.sin(angle) * r + p.randomGaussian() * 2.5;
 
-    // flow subtil sense moure el centre
-    x += flowX * dist;
-    y += flowY * dist * 0.85;
+        const alpha = p.map(r, 0, 95, 240, 30);
+        p.fill(...STAR_WHITE, alpha);
+        drawOrganicParticle(x, y, p.random(0.2, 1.3));
+      }
 
-    const size = p.random(0.4, 3.0);
+      // ── Glow central elegant ──
+      [
+        [24, 7],
+        [16, 16],
+        [9,  40],
+        [4.5, 95],
+      ].forEach(([radius, alpha]) => {
+        p.fill(...STAR_WHITE, alpha);
+        p.circle(Q_CX, Q_CY, radius * 2);
+      });
 
-    const darknessBias = p.map(perVal, 0, 100, 0.08, 0.42);
-    const r = p.random();
+      brightStar(Q_CX, Q_CY, 16);
 
-    if (r < 0.54) {
-      p.fill(...STAR_WHITE, p.random(80, 220));
-    } else if (r < 0.84) {
-      p.fill(...STAR_MID, p.random(70, 170));
-    } else if (r < 0.84 + darknessBias) {
-      const darkCol = p.random() < 0.55 ? STAR_DARK_1 : STAR_DARK_2;
-      p.fill(...darkCol, p.random(160, 255));
-    } else {
-      p.fill(...STAR_WHITE, p.random(35, 90));
+      p.pop();
     }
 
-    drawOrganicParticle(x, y, size);
-  }
+    function drawOrganicParticle(x, y, size) {
+      p.push();
+      p.translate(x, y);
 
-  // micro densitat central amb lleu biaix
-  for (let i = 0; i < 4300; i++) {
-    const angle = p.random(p.TWO_PI);
-    const perVal = getPercentAtAngle(angle);
-    const weight = p.map(perVal, 0, 100, 0.55, 1.08);
+      const points = 6;
+      const verts = [];
 
-    let r = p.pow(p.random(), 3.6) * 220;
-    r *= weight;
+      for (let i = 0; i < points; i++) {
+        const angle = (p.TWO_PI / points) * i;
+        const radius = size * p.random(0.55, 1.35);
+        verts.push({
+          x: p.cos(angle) * radius,
+          y: p.sin(angle) * radius,
+        });
+      }
 
-    let x = Q_CX + p.cos(angle) * r + p.randomGaussian() * 5;
-    let y = Q_CY + p.sin(angle) * r + p.randomGaussian() * 5;
+      p.beginShape();
+      for (let i = 0; i < verts.length; i++) {
+        p.curveVertex(verts[i].x, verts[i].y);
+      }
+      p.curveVertex(verts[0].x, verts[0].y);
+      p.curveVertex(verts[1].x, verts[1].y);
+      p.curveVertex(verts[2].x, verts[2].y);
+      p.endShape(p.CLOSE);
 
-    x += flowX * r * 0.45;
-    y += flowY * r * 0.38;
-
-    const alpha = p.map(perVal, 0, 100, 38, 120);
-    p.fill(...STAR_WHITE, alpha);
-    drawOrganicParticle(x, y, p.random(0.2, 1.35));
-  }
-
-  brightStar(Q_CX, Q_CY, 18);
-
-  p.pop();
-}
-
-function drawOrganicParticle(x, y, size) {
-  p.push();
-  p.translate(x, y);
-
-  const points = 6;
-  const verts = [];
-
-  for (let i = 0; i < points; i++) {
-    const angle = (p.TWO_PI / points) * i;
-    const radius = size * p.random(0.55, 1.35);
-
-    verts.push({
-      x: p.cos(angle) * radius,
-      y: p.sin(angle) * radius,
-    });
-  }
-
-  p.beginShape();
-  for (let i = 0; i < verts.length; i++) {
-    const v = verts[i];
-    p.curveVertex(v.x, v.y);
-  }
-  // repetir primers punts perquè curveVertex tanqui bé
-  p.curveVertex(verts[0].x, verts[0].y);
-  p.curveVertex(verts[1].x, verts[1].y);
-  p.curveVertex(verts[2].x, verts[2].y);
-  p.endShape(p.CLOSE);
-
-  p.pop();
-}
+      p.pop();
+    }
     function brightStar(x, y, s) {
       [
   [s * 18, 10],
@@ -350,43 +346,34 @@ function drawOrganicParticle(x, y, size) {
       p.circle(x, y, s * 1.04);
     }
 
-    function hRule(x1, y, x2, alpha = 0.5) {
-      p.push();
-      p.stroke(...RULE, 255 * alpha);
-      p.strokeWeight(0.65);
-      p.line(x1, y, x2, y);
-      p.pop();
+    function drawName() {
+      p.noStroke();
+      p.fill(...TEXT_MAIN, 248);
+      p.textFont(SERIF);
+      p.textStyle(p.NORMAL);
+      p.textSize(42);
+      p.textAlign(p.CENTER);
+      p.text(profile?.name || 'Viajero', W / 2, NAME_Y);
     }
 
-    function drawName() {
-  p.noStroke();
-  p.fill(...TEXT_MAIN, 248);
-  p.textFont(SERIF);
-  p.textStyle(p.NORMAL);
-  p.textSize(42);
-  p.textAlign(p.CENTER);
-  p.text(profile?.name || 'Viajero', W / 2, NAME_Y);
-}
+    function drawInfoBlock() {
+      const COL1 = Math.round(W * 0.22);
+      const COL2 = W / 2;
+      const COL3 = Math.round(W * 0.78);
+      const CW = 260;
+      const y = INFO_Y;
 
-   function drawInfoBlock() {
-  const CX = W / 2;
-  const TW = 580;  // amplada del bloc de text
-  let y = INFO_Y;
+      // Labels
+      infoLabelCenter('ESENCIA VIAJERA', COL1, y);
+      infoLabelCenter('TRIBU', COL2, y);
+      infoLabelCenter('DESTINO IDEAL', COL3, y);
 
-  infoLabelCenter('ESENCIA VIAJERA', CX, y);
-  y += 26;
-  infoTextCenter(profile?.microADN || '—', CX, y, TW, 20, 26);
-  y += 58;
-
-  infoLabelCenter('TRIBU', CX, y);
-  y += 26;
-  infoTextCenter(profile?.tribe || '—', CX, y, TW, 20, 26);
-  y += 58;
-
-  infoLabelCenter('DESTINO IDEAL', CX, y);
-  y += 26;
-  infoTextCenter(destination || '—', CX, y, TW, 20, 26);
-}
+      // Contingut
+      const cy = y + 26;
+      infoTextCenter(profile?.microADN || '—', COL1, cy, CW, 18, 24);
+      infoTextCenter(profile?.tribe || '—', COL2, cy, CW, 18, 24);
+      infoTextCenter(destination || '—', COL3, cy, CW, 18, 24);
+    }
 
     function infoLabelCenter(txt, x, y) {
       p.drawingContext.save();

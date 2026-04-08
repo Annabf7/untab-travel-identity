@@ -45,9 +45,12 @@ function initForm(steps, onSubmit) {
 function renderStep() {
   const container = document.getElementById('view-form');
   const step = formState.config[formState.currentStep];
-  const total = formState.config.length;
-  const current = formState.currentStep + 1;
-  const isLast = current === total;
+  const visibleSteps = formState.config.filter((_, i) => !shouldSkipStep(i));
+  const total = visibleSteps.length;
+  const current = visibleSteps.indexOf(step) + 1;
+  const isLast = formState.currentStep === formState.config.length - 1 ||
+    formState.config.slice(formState.currentStep + 1).every((_, i) =>
+      shouldSkipStep(formState.currentStep + 1 + i));
   // Show Continuar for non-radio steps, and also for radio steps with an "Otro" option
   const showNext = step.type !== 'radio' || !!getOtherOption(step);
 
@@ -319,22 +322,42 @@ function validateCurrentStep() {
   return true;
 }
 
+function shouldSkipStep(index) {
+  const step = formState.config[index];
+  if (!step || !step.showIf) return false;
+  const answer = formState.answers[step.showIf.slug];
+  // Si la resposta no coincideix amb el valor requerit → saltar
+  if (Array.isArray(answer)) {
+    return !answer.includes(step.showIf.value);
+  }
+  return answer !== step.showIf.value;
+}
+
 function nextStep() {
   if (!validateCurrentStep()) return;
   saveCurrentStep();
 
-  if (formState.currentStep === formState.config.length - 1) {
+  let next = formState.currentStep + 1;
+  while (next < formState.config.length && shouldSkipStep(next)) {
+    next++;
+  }
+
+  if (next >= formState.config.length) {
     formState.onSubmit(buildFinalAnswers());
   } else {
-    formState.currentStep++;
+    formState.currentStep = next;
     renderStep();
   }
 }
 
 function prevStep() {
   saveCurrentStep();
-  if (formState.currentStep > 0) {
-    formState.currentStep--;
+  let prev = formState.currentStep - 1;
+  while (prev >= 0 && shouldSkipStep(prev)) {
+    prev--;
+  }
+  if (prev >= 0) {
+    formState.currentStep = prev;
     renderStep();
   }
 }

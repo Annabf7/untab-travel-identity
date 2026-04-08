@@ -93,6 +93,13 @@ function mapFormConfig(rawQuestions, rawOptions) {
       const ss = (q.scoring_slug || '').trim();
       if (ss) step.scoringSlug = ss;
 
+      // Condició de visibilitat (skip logic)
+      const showSlug  = (q.show_if_slug  || '').trim();
+      const showValue = (q.show_if_value || '').trim();
+      if (showSlug && showValue) {
+        step.showIf = { slug: showSlug, value: showValue };
+      }
+
       // Opcions per radio/checkbox
       if (type === 'radio' || type === 'checkbox') {
         step.options = options
